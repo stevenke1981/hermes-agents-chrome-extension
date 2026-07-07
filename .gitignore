@@ -6,3 +6,4 @@ coverage/
 .codebase-memory/
 *.log
 *.tsbuildinfo
+.opencode/
