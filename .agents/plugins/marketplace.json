@@ -1,0 +1,20 @@
+{
+  "name": "hermes-extension-local-plugins",
+  "interface": {
+    "displayName": "Hermes Extension Local Plugins"
+  },
+  "plugins": [
+    {
+      "name": "hermes-extension-workflow",
+      "source": {
+        "source": "local",
+        "path": "./plugins/hermes-extension-workflow"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

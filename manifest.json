@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "Hermes Agents Chrome Extension",
+  "short_name": "Hermes Agents",
+  "version": "0.1.0",
+  "description": "Read-only side panel client for Hermes Agent Runtime.",
+  "minimum_chrome_version": "114",
+  "permissions": ["activeTab", "scripting", "sidePanel", "storage", "tabs"],
+  "optional_permissions": [],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "src/background/background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Open Hermes Agents",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+H",
+        "mac": "Alt+H"
+      },
+      "description": "Open Hermes Agents"
+    }
+  }
+}

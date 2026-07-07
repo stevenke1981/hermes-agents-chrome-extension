@@ -1,0 +1,253 @@
+:root {
+  color-scheme: dark light;
+  --bg: #0f1115;
+  --panel: #151923;
+  --panel-2: #1b2130;
+  --text: #f4f7fb;
+  --muted: #a9b1c3;
+  --border: #2a3142;
+  --accent: #31c48d;
+  --danger: #ef4444;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 360px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+select {
+  min-height: 34px;
+}
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto auto auto auto 1fr auto auto;
+  gap: 12px;
+  padding: 14px;
+}
+
+.topbar,
+.connection,
+.selectors,
+.context-bar,
+.receipt,
+.composer {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.topbar,
+.topbar > div,
+.connection,
+.selectors {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(49, 196, 141, 0.16);
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+p,
+dd {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-chip {
+  color: var(--muted);
+}
+
+.connection button {
+  padding: 0 14px;
+}
+
+.selectors label,
+.context-bar label,
+.composer label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.selectors label {
+  width: 50%;
+}
+
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+select {
+  padding: 0 10px;
+}
+
+.context-bar {
+  display: grid;
+  gap: 8px;
+}
+
+.context-receipt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.agent-modes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.agent-modes button {
+  min-width: 0;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+.agent-modes .selected {
+  border-color: rgba(49, 196, 141, 0.75);
+  color: var(--accent);
+}
+
+.transcript {
+  display: grid;
+  min-height: 180px;
+  align-items: center;
+  justify-items: center;
+}
+
+.empty-state {
+  color: var(--muted);
+}
+
+.receipt {
+  display: grid;
+  gap: 8px;
+}
+
+dl {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+dt {
+  color: var(--text);
+  font-size: 12px;
+}
+
+dd {
+  margin: 0;
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.composer label,
+.composer textarea {
+  grid-column: 1 / -1;
+}
+
+textarea {
+  min-height: 86px;
+  resize: vertical;
+  padding: 10px;
+}
+
+.composer button {
+  grid-column: 2;
+  padding: 0 16px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --panel-2: #edf1f7;
+    --text: #131722;
+    --muted: #566176;
+    --border: #d6dde8;
+  }
+}
+

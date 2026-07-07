@@ -1,0 +1,6 @@
+{
+  "name": "hermes-extension-workflow",
+  "version": "0.1.0",
+  "description": "Reusable Codex workflow for building the Hermes Agents Chrome Extension safely.",
+  "skills": "./skills/"
+}

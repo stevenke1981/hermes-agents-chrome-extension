@@ -1,0 +1,121 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Hermes Agents Chrome Extension — OpenCode configuration template
+  // 使用方式：複製成 opencode.json 或依你的全域設定合併。
+
+  "permission": {
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "edit": "ask",
+    "bash": {
+      "*": "ask",
+      "npm test": "allow",
+      "npm run test": "allow",
+      "npm run check:js": "allow",
+      "npm run check:manifest": "allow",
+      "npm run verify": "allow",
+      "npm run build": "allow",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git add*": "ask",
+      "git commit*": "ask",
+      "git push*": "ask"
+    },
+    "webfetch": "ask",
+    "websearch": "ask",
+    "external_directory": "ask",
+    "lsp": "allow",
+    "skill": "allow",
+    "task": "allow"
+  },
+
+  "agent": {
+    "plan": {
+      "mode": "primary",
+      "description": "Read-only planning agent for architecture, milestones, and risk review.",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      },
+      "prompt": "You are the Hermes Extension planner. Read AGENTS.md, plan.md, spec.md, uidesign.md, test.md, and todos.md before proposing work. Do not modify files. Focus on scope, security boundary, and incremental implementation."
+    },
+
+    "build": {
+      "mode": "primary",
+      "description": "Implementation agent for one scoped todo at a time.",
+      "permission": {
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "npm test": "allow",
+          "npm run test": "allow",
+          "npm run check:js": "allow",
+          "npm run check:manifest": "allow",
+          "npm run verify": "allow",
+          "npm run build": "allow",
+          "git status*": "allow",
+          "git diff*": "allow"
+        }
+      },
+      "prompt": "You implement only the current scoped todo. Never add debugger, nativeMessaging, cookies, history, downloads, bookmarks, or browser-control behavior in v0.1. Run tests and update todos/final status."
+    },
+
+    "hermes-explorer": {
+      "mode": "subagent",
+      "description": "Read-only codebase exploration for file structure, dependencies, and existing patterns.",
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "grep *": "allow",
+          "find *": "allow"
+        },
+        "webfetch": "deny",
+        "websearch": "deny"
+      },
+      "prompt": "Explore the repository without changing files. Return concise findings with file paths and recommended next steps."
+    },
+
+    "hermes-reviewer": {
+      "mode": "subagent",
+      "description": "Security and code-quality reviewer. Does not edit files.",
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "*": "ask",
+          "git diff*": "allow",
+          "git status*": "allow",
+          "npm test": "allow",
+          "npm run test": "allow",
+          "npm run check:manifest": "allow"
+        }
+      },
+      "prompt": "Review the diff for security, permissions, token handling, diagnostics redaction, restricted pages, untrusted context wrapper, and test coverage. Do not modify files; return findings with severity and suggested patches."
+    },
+
+    "hermes-qa": {
+      "mode": "subagent",
+      "description": "Testing and release QA agent.",
+      "permission": {
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "npm test": "allow",
+          "npm run test": "allow",
+          "npm run check:js": "allow",
+          "npm run check:manifest": "allow",
+          "npm run verify": "allow",
+          "npm run build": "allow",
+          "npm run e2e": "ask"
+        }
+      },
+      "prompt": "Create or update tests for the current feature. Prefer unit tests for redaction/restricted/diagnostics and E2E for side panel load. Keep the v0.1 read-only boundary."
+    }
+  }
+}

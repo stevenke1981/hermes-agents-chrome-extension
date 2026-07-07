@@ -1,0 +1,35 @@
+{
+  "name": "hermes-agents-chrome-extension",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only Chromium MV3 side panel client for Hermes Agent Runtime.",
+  "scripts": {
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "check:js": "tsc --noEmit",
+    "check:manifest": "node scripts/check-manifest.mjs",
+    "check:security": "node scripts/check-security-sinks.mjs",
+    "verify": "npm run test && npm run check:js && npm run check:manifest && npm run check:security",
+    "build": "vite build && node scripts/copy-manifest.mjs",
+    "package": "npm run verify && npm run build && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/chrome": "^0.0.287",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.1",
+    "vite": "^6.0.7",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

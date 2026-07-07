@@ -1,0 +1,8 @@
+node_modules/
+dist/
+artifacts/
+coverage/
+.vite/
+.codebase-memory/
+*.log
+*.tsbuildinfo
