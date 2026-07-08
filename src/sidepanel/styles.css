@@ -93,9 +93,30 @@ textarea:focus-visible {
   gap: 12px;
 }
 
+.topbar {
+  flex-wrap: wrap;
+}
+
+.topbar-actions {
+  display: flex;
+  flex: 1 1 100%;
+  gap: 8px;
+}
+
+.topbar-actions button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
 .connection {
   display: grid;
   gap: 10px;
+}
+
+.drawer:not(.open) {
+  display: none;
 }
 
 .product-mark {
@@ -200,6 +221,17 @@ dd {
   font-size: 12px;
 }
 
+.toggle-row {
+  display: flex !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.toggle-row input {
+  width: auto;
+  min-height: auto;
+}
+
 .field-help {
   color: var(--muted);
   font-size: 11px;
@@ -293,7 +325,21 @@ input {
 }
 
 .transcript {
+  display: grid;
+  gap: 8px;
   min-height: 180px;
+}
+
+.transcript-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.transcript-actions button {
+  min-width: 0;
+  padding: 0 8px;
+  font-size: 12px;
 }
 
 .message-list,

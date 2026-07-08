@@ -156,6 +156,7 @@ export interface BrowserContextBuildInput {
   selectedText?: string;
   page?: PageContext;
   openTabs?: SafeTabInfo[];
+  includeOpenTabs?: boolean;
   attachments?: AttachmentContext[];
   redactions?: RedactionEvent[];
   restricted?: RestrictedPageResult;
@@ -181,6 +182,7 @@ export interface HermesTurnInput {
   profile?: string;
   sessionId?: string;
   context?: string;
+  signal?: AbortSignal;
 }
 
 export type HermesStreamEvent =

@@ -42,6 +42,35 @@ describe('Browser Context Protocol v1', () => {
     expect(context.limits.truncated).toBe(false);
   });
 
+  it('selected_text_only omits page text and tab title', () => {
+    const context = buildBrowserContext({
+      scope: 'selected_text_only',
+      source: { browser: 'chrome', extensionVersion: '0.1.0' },
+      activeTab: { origin: 'https://example.com', title: 'Sensitive title' },
+      selectedText: 'Selected text',
+      page: { title: 'Sensitive title', text: 'Full page text must not be sent' }
+    });
+
+    expect(context.activeTab).toEqual({ origin: 'https://example.com' });
+    expect(context.selectedText?.text).toBe('Selected text');
+    expect(context.page).toBeUndefined();
+    expect(JSON.stringify(context)).not.toContain('Full page text');
+    expect(JSON.stringify(context)).not.toContain('Sensitive title');
+  });
+
+  it('page_only omits selected text', () => {
+    const context = buildBrowserContext({
+      scope: 'page_only',
+      source: { browser: 'chrome', extensionVersion: '0.1.0' },
+      selectedText: 'Do not include me',
+      page: { title: 'Example', text: 'Page text' }
+    });
+
+    expect(context.page?.text).toBe('Page text');
+    expect(context.selectedText).toBeUndefined();
+    expect(JSON.stringify(context)).not.toContain('Do not include me');
+  });
+
   it('applies payload char limits and reports truncation', () => {
     const context = buildBrowserContext({
       scope: 'page_only',
@@ -81,7 +110,8 @@ describe('Browser Context Protocol v1', () => {
       activeTab: { origin: 'https://example.com', title: 'Secret title' },
       selectedText: 'Selected secret text',
       page: { title: 'Secret title', text: 'Sensitive page body' },
-      openTabs: [{ origin: 'https://docs.example', title: 'Docs' }]
+      openTabs: [{ origin: 'https://docs.example', title: 'Docs' }],
+      includeOpenTabs: true
     });
 
     const receipt = createContextReceipt(context);
@@ -95,5 +125,32 @@ describe('Browser Context Protocol v1', () => {
     });
     expect(JSON.stringify(receipt)).not.toContain('Sensitive page body');
     expect(JSON.stringify(receipt)).not.toContain('Secret title');
+  });
+
+  it('keeps open tabs out of context unless explicitly enabled', () => {
+    const context = buildBrowserContext({
+      scope: 'follow_active_tab',
+      source: { browser: 'chrome', extensionVersion: '0.1.0' },
+      activeTab: { origin: 'https://example.com', title: 'Example' },
+      page: { title: 'Example', text: 'Page text' },
+      openTabs: [{ origin: 'https://docs.example', title: 'Docs' }],
+      includeOpenTabs: false
+    });
+
+    expect(context.openTabs).toBeUndefined();
+    expect(createContextReceipt(context).openTabsSent).toBe(0);
+  });
+
+  it('includes open tabs summary when explicitly enabled', () => {
+    const context = buildBrowserContext({
+      scope: 'follow_active_tab',
+      source: { browser: 'chrome', extensionVersion: '0.1.0' },
+      page: { title: 'Example', text: 'Page text' },
+      openTabs: [{ origin: 'https://docs.example', title: 'Docs' }],
+      includeOpenTabs: true
+    });
+
+    expect(context.openTabs).toEqual([{ origin: 'https://docs.example', title: 'Docs' }]);
+    expect(createContextReceipt(context).openTabsSent).toBe(1);
   });
 });

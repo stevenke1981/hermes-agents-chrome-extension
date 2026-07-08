@@ -4,6 +4,8 @@ import {
   appendPendingTurn,
   applyDeltaToTranscript,
   buildAgentModeSystemPrompt,
+  clearConversationTranscript,
+  findLastUserMessage,
   resolveSelectedRuntime
 } from '../src/sidepanel/conversation';
 
@@ -58,5 +60,22 @@ describe('side panel conversation state helpers', () => {
       })
     ).toEqual({});
   });
-});
 
+  it('finds the most recent user message for retry', () => {
+    expect(
+      findLastUserMessage([
+        { role: 'user', text: 'First' },
+        { role: 'hermes', text: 'Answer' },
+        { role: 'user', text: 'Retry me' },
+        { role: 'hermes', text: '' }
+      ])
+    ).toBe('Retry me');
+  });
+
+  it('clears conversation back to the safe default transcript', () => {
+    const transcript = clearConversationTranscript();
+
+    expect(transcript.some((message) => message.text.includes('Connect Hermes Gateway'))).toBe(true);
+    expect(transcript.some((message) => message.text.includes('Secret old page'))).toBe(false);
+  });
+});

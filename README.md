@@ -28,12 +28,28 @@
 
 ## 建議使用方式
 
-1. 建立新 repo：`hermes-agents-chrome-extension`。
-2. 將本包全部解壓到 repo 根目錄。
-3. 先讓 Codex 讀取 `AGENTS.md`、`plan.md`、`spec.md`、`uidesign.md`。
-4. 用 `prompts/codex-master-prompt.md` 開第一個 Codex 任務，要求先 scaffold，不要一次實作所有功能。
-5. 用 OpenCode 的 Plan agent 審查實作路線，再切 Build agent 執行。
-6. 每一個 milestone 都必須跑 `npm test`、`npm run check:manifest`、`npm run build`，並更新 `final.md` 的驗收狀態。
+1. 安裝 Node.js 20+。
+2. 執行 `npm install`。
+3. 執行 `npm run verify` 與 `npm run build`。
+4. 在 Chromium browser 開 extension page，啟用 Developer mode。
+5. Load unpacked 時選擇 `dist/`，不是 repo root。
+6. 開啟 Side Panel，預設 Gateway 是 `http://127.0.0.1:8642`。
+7. 若 Hermes Gateway 有設定 `API_SERVER_KEY`，貼到 extension settings 的 API token 欄位；extension 會用 `Authorization: Bearer <token>` 傳送。
+8. 每一個 milestone 都必須跑 `npm test`、`npm run check:manifest`、`npm run build`，並更新 `final.md` 的驗收狀態。
+
+## Hermes Gateway CORS
+
+Local Gateway 建議設定：
+
+```bash
+API_SERVER_ENABLED=true
+API_SERVER_HOST=127.0.0.1
+API_SERVER_PORT=8642
+API_SERVER_KEY=<your-api-server-key>
+API_SERVER_CORS_ORIGINS=chrome-extension://<your-extension-id>
+```
+
+Extension id 會因 load unpacked path/profile 改變；若連線被 CORS 擋下，請在 `chrome://extensions`、`edge://extensions` 或 `brave://extensions` 複製目前 id 並更新 Hermes 設定。
 
 ## 推薦技術棧
 

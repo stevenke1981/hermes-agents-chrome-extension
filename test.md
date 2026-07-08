@@ -144,6 +144,12 @@ https://vault.example.com/passwords
 - [x] Side Panel active tab `chrome.tabs.sendMessage()` 有 timeout fallback。
 - [x] Diagnostics copied 狀態會自動重置。
 - [x] Send streaming 狀態有 spinner feedback。
+- [x] Settings / Diagnostics drawer 可由 header toggle，Esc 可關閉 drawer。
+- [x] Composer 支援 Ctrl+Enter / Cmd+Enter keyboard send。
+- [x] Open tabs summary 預設 off，啟用後只送 safe origin/redacted title，並跳過 restricted tabs。
+- [x] `selected_text_only` 不送 page title/page body。
+- [x] Timeout fallback 會 redact active tab/page title。
+- [x] Cancel streaming、Retry last message、Clear conversation 有 regression coverage。
 
 ### 4.4 Diagnostics tests
 
@@ -263,6 +269,7 @@ Result:
 
 - [x] Edge `150.0.4078.48`：真實瀏覽器臨時 profile 載入 `dist/`，extension service worker detected，side panel default path 正確，Side Panel page render 核心 UI，`https://example.com` 開啟成功，Local Hermes Gateway test connection 回到 `Connected · warning`。
 - [x] Brave `150.0.7871.63`：真實瀏覽器臨時 profile 載入 `dist/`，extension service worker detected，side panel default path 正確，Side Panel page render 核心 UI，`https://example.com` 開啟成功，Local Hermes Gateway test connection 回到 `Connected · warning`。
+- [x] Edge / Brave QA script 會輸出 safe UI screenshots 到 `docs/screenshots/`。
 - [ ] Chrome `150.0.7871.47`：browser executable 可啟動且 `dist` manifest 權限檢查通過，但 Google Chrome 137+ 封鎖 command-line `--load-extension`，因此此自動 smoke 無法代表 `chrome://extensions` UI Load unpacked；仍需人工在 Chrome extension page 執行 Developer mode → Load unpacked。
 
 ### 7.1 Chrome
@@ -322,12 +329,12 @@ Result:
 
 ### 8.3 Token handling tests
 
-- [ ] token input type password。
-- [ ] save 後 UI mask。
-- [ ] clear stored token 可用。
+- [x] token input type password。
+- [x] save 後 UI mask。
+- [x] clear stored token 可用。
 - [ ] console log 無 token。
 - [ ] diagnostics 無 token。
-- [ ] network error message 無 token。
+- [x] network error message 無 token。
 
 ## 9. Performance Tests
 
@@ -349,10 +356,10 @@ npm run package
 
 Release checklist：
 
-- [ ] `dist/manifest.json` version 正確。
-- [ ] `dist/` 可 load unpacked。
-- [ ] artifact zip 可解壓。
-- [ ] README install steps 正確。
-- [ ] `SECURITY.md` / `PERMISSIONS.md` / `PRIVACY.md` / `DATA-FLOW.md` 與實作一致。
-- [ ] known issues 更新。
-- [ ] screenshots 更新。
+- [x] `dist/manifest.json` version 正確。
+- [x] `dist/` 可 load unpacked（Edge / Brave real-browser smoke 通過；Chrome CLI load blocked，需 UI manual）。
+- [x] artifact zip 可解壓。
+- [x] README install steps 正確。
+- [x] `SECURITY.md` / `PERMISSIONS.md` / `PRIVACY.md` / `DATA-FLOW.md` 與實作一致。
+- [x] known issues 更新。
+- [x] screenshots 更新。

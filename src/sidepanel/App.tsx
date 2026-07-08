@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { redactText } from '../content/redaction';
+import { isRestrictedPage } from '../content/restricted-pages';
 import { createHermesRestClient, probeGateway, redactSensitiveText } from '../gateway/rest-adapter';
-import { wrapUntrustedBrowserContext } from '../shared/browser-context-protocol';
+import { createContextReceipt, wrapUntrustedBrowserContext } from '../shared/browser-context-protocol';
 import { AGENT_MODES, CONTEXT_SCOPES, EXTENSION_NAME, EXTENSION_VERSION } from '../shared/constants';
 import { createDiagnosticsPayload, detectBrowserFamily } from '../shared/diagnostics';
 import {
@@ -25,6 +27,8 @@ import {
   appendPendingTurn,
   applyDeltaToTranscript,
   buildAgentModeSystemPrompt,
+  clearConversationTranscript,
+  findLastUserMessage,
   resolveSelectedRuntime
 } from './conversation';
 import type { TranscriptMessage } from './conversation';
@@ -86,24 +90,24 @@ export const ACTIVE_TAB_CONTEXT_TIMEOUT_MS = 1_500;
 export const DIAGNOSTICS_COPIED_RESET_MS = 2_500;
 
 export function App() {
+  const activeStreamController = useRef<AbortController | undefined>(undefined);
   const [settings, setSettings] = useState<GatewaySettings>(DEFAULT_GATEWAY_SETTINGS);
+  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [probeResult, setProbeResult] = useState<GatewayProbeResult>(emptyProbe);
   const [activeError, setActiveError] = useState<string | undefined>();
   const [diagnosticsCopied, setDiagnosticsCopied] = useState(false);
   const [contextScope, setContextScope] = useState<ContextScope>('chat_only');
+  const [includeOpenTabs, setIncludeOpenTabs] = useState(false);
   const [agentMode, setAgentMode] = useState<AgentMode>('general_chat');
   const [selectedModelId, setSelectedModelId] = useState('');
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [messageText, setMessageText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [transcript, setTranscript] = useState<TranscriptMessage[]>([
-    { role: 'system', text: 'Connect Hermes Gateway' },
-    { role: 'user', text: 'Browser context attached only when the selected scope allows it.' },
-    { role: 'hermes', text: 'Responses will stream here with markdown and tool activity.' }
-  ]);
+  const [transcript, setTranscript] = useState<TranscriptMessage[]>(() => clearConversationTranscript());
   const [toolActivity, setToolActivity] = useState<ToolActivity[]>([
     { type: 'status', name: 'browser context', status: 'waiting' },
     { type: 'status', name: 'Hermes tools', status: 'available after gateway connection' },
@@ -210,12 +214,53 @@ export function App() {
     }
 
     setMessageText('');
+    await sendMessageToHermes(message);
+  }
+
+  async function handleRetryLastMessage() {
+    const message = findLastUserMessage(transcript);
+    if (!message || !canSend || isStreaming) {
+      return;
+    }
+
+    await sendMessageToHermes(message);
+  }
+
+  function handleCancelStreaming() {
+    activeStreamController.current?.abort();
+  }
+
+  function handleClearConversation() {
+    activeStreamController.current?.abort();
+    setTranscript(clearConversationTranscript());
+    setToolActivity([
+      { type: 'status', name: 'browser context', status: 'waiting' },
+      { type: 'status', name: 'Hermes tools', status: 'available after gateway connection' },
+      { type: 'status', name: 'redaction', status: 'enforced before sending context' }
+    ]);
+    setLastReceipt({
+      scope: 'chat_only',
+      browserContentSent: false,
+      selectedTextIncluded: false,
+      pageTextChars: 0,
+      openTabsSent: 0,
+      attachmentsSent: 0,
+      redactions: 0,
+      truncated: false
+    });
+  }
+
+  async function sendMessageToHermes(message: string) {
+    const controller = new AbortController();
+    activeStreamController.current = controller;
     setActiveError(undefined);
     setIsStreaming(true);
     setTranscript((current) => appendPendingTurn(current, message));
 
     try {
-      const context = contextScope === 'chat_only' ? undefined : await extractContextFromActiveTab(contextScope);
+      const context = contextScope === 'chat_only'
+        ? undefined
+        : await extractContextFromActiveTab(contextScope, { includeOpenTabs });
       if (context) {
         setLastReceipt(context.receipt);
         setToolActivity([{ type: 'status', name: 'browser context', status: 'attached' }]);
@@ -243,15 +288,27 @@ export function App() {
       for await (const event of client.sendTurn({
         message,
         ...runtime,
-        context: buildAgentModeSystemPrompt(agentMode, browserContext)
+        context: buildAgentModeSystemPrompt(agentMode, browserContext),
+        signal: controller.signal
       })) {
         applyStreamEvent(event);
       }
     } catch (error) {
+      if (controller.signal.aborted) {
+        setToolActivity((current) => [
+          ...current,
+          { type: 'status', name: 'stream', status: 'canceled by user' }
+        ]);
+        return;
+      }
+
       const message = error instanceof Error ? redactSensitiveText(error.message) : 'Streaming failed.';
       setActiveError(message);
       setConnectionState('connected_with_warning');
     } finally {
+      if (activeStreamController.current === controller) {
+        activeStreamController.current = undefined;
+      }
       setIsStreaming(false);
     }
   }
@@ -303,13 +360,40 @@ export function App() {
           <span className="product-mark" aria-hidden="true" />
           <h1>{EXTENSION_NAME}</h1>
         </div>
-        <button className={`status-chip ${connectionState}`} type="button" aria-label="Connection settings">
+        <button
+          className={`status-chip ${connectionState}`}
+          type="button"
+          aria-label="Connection settings"
+          onClick={() => setSettingsOpen((open) => !open)}
+        >
           {connectionState === 'connecting' ? <span className="spinner" aria-hidden="true" /> : null}
           {connectionLabels[connectionState]}
         </button>
+        <div className="topbar-actions" aria-label="Panel drawers">
+          <button
+            type="button"
+            aria-expanded={settingsOpen}
+            aria-controls="settings-drawer"
+            onClick={() => setSettingsOpen((open) => !open)}
+          >
+            Settings
+          </button>
+          <button
+            type="button"
+            aria-expanded={diagnosticsOpen}
+            aria-controls="diagnostics-drawer"
+            onClick={() => setDiagnosticsOpen((open) => !open)}
+          >
+            Diagnostics
+          </button>
+        </div>
       </header>
 
-      <section className="connection" aria-labelledby="connection-title">
+      <section
+        id="settings-drawer"
+        className={`connection drawer ${settingsOpen ? 'open' : ''}`}
+        aria-labelledby="connection-title"
+      >
         <div className="section-heading">
           <h2 id="connection-title">Connection</h2>
           <p>{probeResult.gatewayOrigin ?? settings.gatewayUrl}</p>
@@ -418,6 +502,14 @@ export function App() {
             ))}
           </select>
         </label>
+        <label className="toggle-row">
+          <input
+            type="checkbox"
+            checked={includeOpenTabs}
+            onChange={(event) => setIncludeOpenTabs(event.target.checked)}
+          />
+          Include open tabs summary
+        </label>
         <div className="context-receipt">
           {lastReceipt.blockedCategory
             ? `Blocked sensitive page · ${lastReceipt.blockedCategory}`
@@ -440,6 +532,17 @@ export function App() {
       </section>
 
       <section className="transcript" aria-label="Conversation">
+        <div className="transcript-actions" aria-label="Conversation actions">
+          <button type="button" onClick={() => void handleRetryLastMessage()} disabled={!canSend || isStreaming || !findLastUserMessage(transcript)}>
+            Retry
+          </button>
+          <button type="button" onClick={handleCancelStreaming} disabled={!isStreaming}>
+            Cancel
+          </button>
+          <button type="button" onClick={handleClearConversation}>
+            Clear
+          </button>
+        </div>
         <div className="message-list">
           {transcript.map((message, index) => (
             <article key={`${message.role}-${index}`} className={`message ${message.role}-message`}>
@@ -515,7 +618,11 @@ export function App() {
         </div>
       </section>
 
-      <section className="diagnostics" aria-label="Diagnostics">
+      <section
+        id="diagnostics-drawer"
+        className={`diagnostics drawer ${diagnosticsOpen ? 'open' : ''}`}
+        aria-label="Diagnostics"
+      >
         <div className="section-heading">
           <h2>Diagnostics</h2>
           <button type="button" onClick={() => void handleCopyDiagnostics()}>
@@ -556,6 +663,16 @@ export function App() {
           placeholder="Ask Hermes..."
           value={messageText}
           onChange={(event) => setMessageText(event.target.value)}
+          onKeyDown={(event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+              event.preventDefault();
+              void handleSendTurn();
+            }
+            if (event.key === 'Escape') {
+              setSettingsOpen(false);
+              setDiagnosticsOpen(false);
+            }
+          }}
         />
         <button type="submit" disabled={!canSend || !messageText.trim() || isStreaming}>
           <SendButtonContent isStreaming={isStreaming} />
@@ -593,7 +710,14 @@ function getNavigatorBrands(): Array<{ brand: string; version?: string }> {
 }
 
 interface ActiveTabMessageApi {
-  query: (queryInfo: chrome.tabs.QueryInfo) => Promise<Array<{ id?: number }>>;
+  query: (queryInfo: chrome.tabs.QueryInfo) => Promise<
+    Array<{
+      id?: number;
+      url?: string;
+      title?: string;
+      windowId?: number;
+    }>
+  >;
   sendMessage: (tabId: number, message: unknown) => Promise<ActiveTabContextResponse>;
 }
 
@@ -605,6 +729,7 @@ type ActiveTabContextResponse = {
 interface ActiveTabExtractionOptions {
   tabs?: ActiveTabMessageApi;
   timeoutMs?: number;
+  includeOpenTabs?: boolean;
 }
 
 export async function extractContextFromActiveTab(
@@ -621,13 +746,60 @@ export async function extractContextFromActiveTab(
     return undefined;
   }
 
-  return withTimeout(
+  const response = await withTimeout(
     tabs.sendMessage(tab.id, {
       type: 'HERMES_EXTRACT_CONTEXT',
       scope
     }),
     options.timeoutMs ?? ACTIVE_TAB_CONTEXT_TIMEOUT_MS
   ).catch(() => undefined);
+
+  if (!response || !options.includeOpenTabs || response.context.restricted?.blocked) {
+    return response;
+  }
+
+  const openTabs = await collectOpenTabsSummary(tabs);
+  const context = {
+    ...response.context,
+    openTabs
+  };
+
+  return {
+    context,
+    receipt: createContextReceipt(context)
+  };
+}
+
+async function collectOpenTabsSummary(tabs: ActiveTabMessageApi): Promise<BrowserContextV1['openTabs']> {
+  const openTabs = await tabs.query({ currentWindow: true });
+  return openTabs.flatMap((tab) => {
+    if (!tab.url) {
+      return [];
+    }
+
+    try {
+      const url = new URL(tab.url);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return [];
+      }
+      if (isRestrictedPage(tab.url).blocked) {
+        return [];
+      }
+
+      const title = tab.title ? redactText(tab.title, 'tab_title').text : undefined;
+
+      return [
+        {
+          origin: url.origin,
+          ...(title ? { title } : {}),
+          ...(tab.id !== undefined ? { tabId: tab.id } : {}),
+          ...(tab.windowId !== undefined ? { windowId: tab.windowId } : {})
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
 }
 
 async function withTimeout<T>(

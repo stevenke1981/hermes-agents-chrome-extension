@@ -112,6 +112,12 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
   async function request(path: string, init: RequestInit): Promise<Response> {
     const controller = new AbortController();
     const timeout = globalThis.setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+    const externalSignal = init.signal;
+    const abortFromExternalSignal = () => controller.abort();
+    externalSignal?.addEventListener('abort', abortFromExternalSignal, { once: true });
+    if (externalSignal?.aborted) {
+      controller.abort();
+    }
 
     try {
       const response = await fetch(new URL(path, `${baseUrl}/`), {
@@ -135,6 +141,12 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
       }
 
       if (error instanceof DOMException && error.name === 'AbortError') {
+        if (externalSignal?.aborted) {
+          throw new HermesGatewayError('network', 'Hermes Gateway request was canceled.', {
+            cause: error
+          });
+        }
+
         throw new HermesGatewayError('timeout', `Hermes Gateway request timed out for ${path}.`, {
           cause: error
         });
@@ -145,6 +157,7 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
       });
     } finally {
       globalThis.clearTimeout(timeout);
+      externalSignal?.removeEventListener('abort', abortFromExternalSignal);
     }
   }
 
@@ -173,6 +186,7 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
         headers: {
           'Content-Type': 'application/json'
         },
+        signal: input.signal,
         body: JSON.stringify({
           model: input.model,
           messages: buildMessages(input),

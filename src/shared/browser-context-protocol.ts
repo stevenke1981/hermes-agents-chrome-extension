@@ -5,21 +5,34 @@ const DEFAULT_MAX_CHARS = 40_000;
 export function buildBrowserContext(input: BrowserContextBuildInput): BrowserContextV1 {
   const maxChars = input.maxChars ?? DEFAULT_MAX_CHARS;
   const includeBrowserContext = input.scope !== 'chat_only';
-  const includeOpenTabs = input.scope === 'follow_active_tab' || input.scope === 'pinned_tab';
-  const originalText = includeBrowserContext ? (input.page?.text ?? '') : '';
+  const includePage = includeBrowserContext && input.scope !== 'selected_text_only';
+  const includeSelectedText = includeBrowserContext && input.scope !== 'page_only';
+  const includeOpenTabs =
+    input.includeOpenTabs === true &&
+    (input.scope === 'follow_active_tab' || input.scope === 'pinned_tab');
+  const originalText = includePage ? (input.page?.text ?? '') : '';
   const truncatedText = originalText.slice(0, maxChars);
   const truncated = originalText.length > truncatedText.length;
-  const page = includeBrowserContext && input.page
+  const page = includePage && input.page
     ? {
         ...input.page,
         text: truncatedText
       }
     : undefined;
-  const selectedText = includeBrowserContext && input.selectedText
+  const selectedText = includeSelectedText && input.selectedText
     ? {
         text: input.selectedText,
         originalChars: input.selectedText.length
       }
+    : undefined;
+  const activeTab = includeBrowserContext && input.activeTab
+    ? input.scope === 'selected_text_only'
+      ? {
+          origin: input.activeTab.origin,
+          ...(input.activeTab.tabId !== undefined ? { tabId: input.activeTab.tabId } : {}),
+          ...(input.activeTab.windowId !== undefined ? { windowId: input.activeTab.windowId } : {})
+        }
+      : input.activeTab
     : undefined;
 
   return {
@@ -28,7 +41,7 @@ export function buildBrowserContext(input: BrowserContextBuildInput): BrowserCon
     createdAt: new Date().toISOString(),
     scope: input.scope,
     source: input.source,
-    activeTab: includeBrowserContext ? input.activeTab : undefined,
+    activeTab,
     selectedText,
     page,
     openTabs: includeBrowserContext && includeOpenTabs ? input.openTabs : undefined,

@@ -100,6 +100,19 @@ npm audit --audit-level=moderate
 - Chrome `150.0.7871.47`：可啟動、`dist` manifest 權限檢查通過；但 Google Chrome 137+ 封鎖 command-line `--load-extension`，本機 stderr 顯示 `--load-extension is not allowed in Google Chrome, ignoring.`，因此 Chrome 仍需人工走 `chrome://extensions` → Developer mode → Load unpacked。
 - 驗收結果：`npm run build` 通過；`npm run qa:manual:browsers` 通過並輸出 Chrome blocked / Edge passed / Brave passed。
 
+### 2026-07-08 Completion / Security follow-up 驗收紀錄
+
+- 補齊 Side Panel Settings drawer / Diagnostics drawer toggle，connection chip 可開關 settings，Esc 可關閉 drawer。
+- 補齊 composer keyboard send：Ctrl+Enter / Cmd+Enter 送出目前訊息。
+- 補齊 Chat controls：Cancel streaming 會 abort 當前 fetch、Retry last message 會重送最後一則 user message、Clear conversation 會重置本地 transcript / tool activity / receipt。
+- 補齊 open tabs summary：預設 off；使用者啟用後只送 safe origin / redacted title / tab id / window id，restricted tabs 與 browser internals 不會送出。
+- 修復 `selected_text_only` scope：只送 selected text 與 active tab origin，不送 page title / page body。
+- 修復 context extraction timeout fallback：active tab title / page title 會先 redacted，再建立最小 context。
+- 擴充 security regression tests：open-tabs opt-in、restricted-tab filtering、title redaction、selected-text-only boundary、timeout fallback redaction。
+- 更新文件：`README.md`、`docs/DATA-FLOW.md`、`docs/PERMISSIONS.md`、`docs/PRIVACY.md`、`docs/SECURITY.md`、`docs/TROUBLESHOOTING.md`、`docs/DEVELOPMENT.md`、`docs/RELEASE-NOTES.md`、`docs/KNOWN-ISSUES.md`、`docs/ACCEPTANCE-REPORT.md`、`docs/SCREENSHOTS.md`。
+- 更新 `scripts/manual-browser-qa.mjs`，Edge / Brave smoke QA 會輸出 safe UI screenshots 到 `docs/screenshots/`。
+- 驗證結果：`npm run verify` 通過（17 test files、88 tests、`tsc --noEmit`、manifest check、security sink check）；`npm run build` 通過；`npm run lint` 通過；`npm audit --audit-level=moderate` 回報 0 vulnerabilities；`npm run package` 通過並產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`；zip 解壓後 `manifest.json` version 為 `0.1.0`；`npm run qa:manual:browsers` 通過 Edge / Brave 並保留 Chrome blocked 為已知限制。
+
 ## 1. 最終交付物
 
 v0.1 Alpha 應交付：

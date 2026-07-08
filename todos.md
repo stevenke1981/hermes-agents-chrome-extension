@@ -42,11 +42,11 @@
 - [x] Context scope picker
 - [x] Composer
 - [x] Message list
-- [ ] Settings drawer
-- [ ] Diagnostics drawer
+- [x] Settings drawer
+- [x] Diagnostics drawer
 - [x] Toast / error banner
 - [x] Light/dark theme
-- [ ] Keyboard navigation
+- [x] Keyboard navigation
 
 ## 3. Gateway Client
 
@@ -78,7 +78,7 @@
 - [x] 建立 links extractor
 - [x] 建立 buttons extractor
 - [x] 建立 form labels extractor
-- [ ] 建立 open tabs summary，預設 off
+- [x] 建立 open tabs summary，預設 off
 - [x] 建立 YouTube transcript adapter stub
 - [x] 建立 YouTube transcript visible/script cue extractor
 - [x] 建立 YouTube transcript content script message handler
@@ -125,10 +125,10 @@
 - [x] Untrusted context wrapper
 - [x] Hermes stream parser
 - [x] Tool activity event normalizer
-- [ ] Cancel streaming
-- [ ] Retry last message
+- [x] Cancel streaming
+- [x] Retry last message
 - [x] Local message history per tab/session
-- [ ] Clear conversation
+- [x] Clear conversation
 
 ## 8. What Hermes Saw
 
@@ -157,37 +157,37 @@
 
 ## 10. Documentation
 
-- [ ] `README.md`
-- [ ] `DATA-FLOW.md`
-- [ ] `PERMISSIONS.md`
-- [ ] `PRIVACY.md`
-- [ ] `SECURITY.md`
-- [ ] `TROUBLESHOOTING.md`
-- [ ] `DEVELOPMENT.md`
-- [ ] Windows setup notes
-- [ ] Load unpacked notes
-- [ ] CORS extension id notes
+- [x] `README.md`
+- [x] `docs/DATA-FLOW.md`
+- [x] `docs/PERMISSIONS.md`
+- [x] `docs/PRIVACY.md`
+- [x] `docs/SECURITY.md`
+- [x] `docs/TROUBLESHOOTING.md`
+- [x] `docs/DEVELOPMENT.md`
+- [x] Windows setup notes
+- [x] Load unpacked notes
+- [x] CORS extension id notes
 
 ## 11. Codex Integration 文件
 
-- [ ] `.codex/agents/hermes-architect.toml`
-- [ ] `.codex/agents/hermes-implementer.toml`
-- [ ] `.codex/agents/hermes-security-reviewer.toml`
-- [ ] `.codex/agents/hermes-qa.toml`
-- [ ] `prompts/codex-master-prompt.md`
-- [ ] Codex local plugin manifest
-- [ ] Codex local skill `SKILL.md`
-- [ ] marketplace.json
+- [x] `.codex/agents/hermes-architect.toml`
+- [x] `.codex/agents/hermes-implementer.toml`
+- [x] `.codex/agents/hermes-security-reviewer.toml`
+- [x] `.codex/agents/hermes-qa.toml`
+- [x] `prompts/codex-master-prompt.md`
+- [x] Codex local plugin manifest
+- [x] Codex local skill `SKILL.md`
+- [x] marketplace.json
 
 ## 12. OpenCode Integration 文件
 
-- [ ] `opencode.jsonc`
-- [ ] `.opencode/agents/hermes-planner.md`
-- [ ] `.opencode/agents/hermes-builder.md`
-- [ ] `.opencode/agents/hermes-reviewer.md`
-- [ ] `.opencode/agents/hermes-qa.md`
-- [ ] `prompts/opencode-master-prompt.md`
-- [ ] OpenCode Plan → Build → Review 流程寫入 `AGENTS.md`
+- [x] `opencode.jsonc`
+- [x] `.opencode/agents/hermes-planner.md`
+- [x] `.opencode/agents/hermes-builder.md`
+- [x] `.opencode/agents/hermes-reviewer.md`
+- [x] `.opencode/agents/hermes-qa.md`
+- [x] `prompts/opencode-master-prompt.md`
+- [x] OpenCode Plan → Build → Review 流程寫入 `AGENTS.md`
 
 ## 13. 測試
 
@@ -211,16 +211,16 @@
 - [ ] Manual Chrome test（Chrome 137+ blocks command-line `--load-extension`; `chrome://extensions` UI Load unpacked still pending）
 - [x] Manual Edge test（2026-07-08 real-browser smoke passed）
 - [x] Manual Brave test（2026-07-08 real-browser smoke passed）
-- [ ] Security regression tests
+- [x] Security regression tests
 
 ## 14. Release
 
 - [x] `dist/` 檢查
 - [x] `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`
-- [ ] release notes
-- [ ] screenshots
-- [ ] known issues
-- [ ] final acceptance report
+- [x] release notes
+- [x] screenshots
+- [x] known issues
+- [x] final acceptance report
 
 ## 15. v0.1 禁止事項確認
 

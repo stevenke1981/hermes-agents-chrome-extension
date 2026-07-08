@@ -5,6 +5,12 @@ export type TranscriptMessage = {
   text: string;
 };
 
+export const DEFAULT_TRANSCRIPT: TranscriptMessage[] = [
+  { role: 'system', text: 'Connect Hermes Gateway' },
+  { role: 'user', text: 'Browser context attached only when the selected scope allows it.' },
+  { role: 'hermes', text: 'Responses will stream here with markdown and tool activity.' }
+];
+
 export interface RuntimeSelection {
   selectedModelId: string;
   selectedProfileId: string;
@@ -47,6 +53,15 @@ export function applyDeltaToTranscript(
   );
 }
 
+export function findLastUserMessage(transcript: TranscriptMessage[]): string | undefined {
+  return [...transcript].reverse().find((message) => message.role === 'user' && message.text.trim())
+    ?.text;
+}
+
+export function clearConversationTranscript(): TranscriptMessage[] {
+  return DEFAULT_TRANSCRIPT.map((message) => ({ ...message }));
+}
+
 export function buildAgentModeSystemPrompt(
   agentMode: AgentMode,
   browserContext?: string
@@ -63,4 +78,3 @@ export function resolveSelectedRuntime(
     ...(selection.selectedSessionId ? { sessionId: selection.selectedSessionId } : {})
   };
 }
-

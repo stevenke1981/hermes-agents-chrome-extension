@@ -47,6 +47,25 @@ async function buildContextFromPage(input: BuildContextFromPageInput): Promise<B
     });
   }
 
+  if (input.scope === 'selected_text_only') {
+    const redacted = redactBrowserContextInput({
+      activeTab: {
+        origin: input.origin,
+        title: input.title
+      },
+      selectedText: input.selectedText
+    });
+
+    return buildBrowserContext({
+      scope: input.scope,
+      source: input.source,
+      activeTab: redacted.activeTab,
+      selectedText: redacted.selectedText,
+      redactions: redacted.redactions,
+      maxChars: input.maxChars
+    });
+  }
+
   const page = await (input.extractPage?.() ?? extractPageContext(input.root ?? document));
   const transcript = await getYouTubeTranscriptContext({
     enabled: input.href.includes('youtube.com/watch') || input.href.includes('youtu.be/'),
@@ -79,17 +98,27 @@ async function buildContextFromPage(input: BuildContextFromPageInput): Promise<B
 }
 
 function buildMinimalTimedOutContext(input: BuildContextFromPageInput): BrowserContextV1 {
-  return buildBrowserContext({
-    scope: input.scope,
-    source: input.source,
+  const redacted = redactBrowserContextInput({
     activeTab: {
       origin: input.origin,
       title: input.title
     },
-    page: {
-      title: input.title,
-      text: ''
-    },
+    selectedText: input.scope === 'selected_text_only' ? input.selectedText : undefined,
+    page: input.scope === 'selected_text_only'
+      ? undefined
+      : {
+          title: input.title,
+          text: ''
+        }
+  });
+
+  return buildBrowserContext({
+    scope: input.scope,
+    source: input.source,
+    activeTab: redacted.activeTab,
+    selectedText: redacted.selectedText,
+    page: redacted.page,
+    redactions: redacted.redactions,
     maxChars: input.maxChars
   });
 }

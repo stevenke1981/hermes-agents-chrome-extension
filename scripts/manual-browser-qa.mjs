@@ -1,11 +1,13 @@
 import { createServer } from 'node:net';
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { Buffer } from 'node:buffer';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 
 const repoRoot = process.cwd();
 const distPath = path.resolve(repoRoot, 'dist');
+const screenshotsPath = path.resolve(repoRoot, 'docs', 'screenshots');
 const forbiddenPermissions = new Set([
   'debugger',
   'nativeMessaging',
@@ -159,6 +161,10 @@ async function runBrowserQa(browser) {
     }
 
     const connectionState = await testGatewayConnection(extensionPage.webSocketDebuggerUrl);
+    const screenshotPath = await captureExtensionScreenshot(
+      extensionPage.webSocketDebuggerUrl,
+      browser.name
+    );
 
     return {
       browser: browser.name,
@@ -172,6 +178,7 @@ async function runBrowserQa(browser) {
         'extension service/profile entry detected',
         'side panel default path is src/sidepanel/index.html',
         'side panel page renders core UI text',
+        `extension UI screenshot saved: ${path.relative(repoRoot, screenshotPath)}`,
         `local Hermes Gateway test connection result: ${connectionState}`,
         'https://example.com opens in the QA profile'
       ]
@@ -283,6 +290,22 @@ async function testGatewayConnection(webSocketUrl) {
   }
 
   return result;
+}
+
+async function captureExtensionScreenshot(webSocketUrl, browserName) {
+  mkdirSync(screenshotsPath, { recursive: true });
+  await cdpCommand(webSocketUrl, 'Page.enable');
+  const result = await cdpCommand(webSocketUrl, 'Page.captureScreenshot', {
+    format: 'png',
+    fromSurface: true
+  });
+  if (typeof result.data !== 'string') {
+    throw new Error('Screenshot capture returned no data.');
+  }
+
+  const filePath = path.join(screenshotsPath, `${browserName.toLowerCase()}-sidepanel.png`);
+  writeFileSync(filePath, Buffer.from(result.data, 'base64'));
+  return filePath;
 }
 
 async function cdpCommand(webSocketUrl, method, params = {}) {
