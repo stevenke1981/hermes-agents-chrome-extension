@@ -140,15 +140,15 @@
 
 ## 9. Diagnostics
 
-- [ ] Copy Diagnostics 按鈕
-- [ ] extension version
-- [ ] browser family/version
-- [ ] gateway origin sanitized
-- [ ] mode / state / capabilities
-- [ ] last visible error category
-- [ ] redaction counts
-- [ ] 確認不含 token/cookie/page text/selected text/full tab URL/tab title
-- [ ] diagnostics tests
+- [x] Copy Diagnostics 按鈕
+- [x] extension version
+- [x] browser family/version
+- [x] gateway origin sanitized
+- [x] mode / state / capabilities
+- [x] last visible error category
+- [x] redaction counts
+- [x] 確認不含 token/cookie/page text/selected text/full tab URL/tab title
+- [x] diagnostics tests
 
 ## 10. Documentation
 
@@ -197,6 +197,7 @@
 - [x] Restricted page classifier tests
 - [x] Redaction unit tests ≥ 20 cases
 - [x] Chat streaming adapter tests
+- [x] Diagnostics redaction tests
 - [ ] Playwright extension load test
 - [ ] Manual Chrome test
 - [ ] Manual Edge test

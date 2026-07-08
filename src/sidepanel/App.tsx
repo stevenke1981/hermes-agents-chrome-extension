@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { createHermesRestClient, probeGateway, redactSensitiveText } from '../gateway/rest-adapter';
 import { wrapUntrustedBrowserContext } from '../shared/browser-context-protocol';
-import { AGENT_MODES, CONTEXT_SCOPES, EXTENSION_NAME } from '../shared/constants';
+import { AGENT_MODES, CONTEXT_SCOPES, EXTENSION_NAME, EXTENSION_VERSION } from '../shared/constants';
+import { createDiagnosticsPayload } from '../shared/diagnostics';
 import {
   clearStoredGatewayToken,
   DEFAULT_GATEWAY_SETTINGS,
@@ -85,6 +86,7 @@ export function App() {
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [probeResult, setProbeResult] = useState<GatewayProbeResult>(emptyProbe);
   const [activeError, setActiveError] = useState<string | undefined>();
+  const [diagnosticsCopied, setDiagnosticsCopied] = useState(false);
   const [contextScope, setContextScope] = useState<ContextScope>('chat_only');
   const [messageText, setMessageText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -265,6 +267,26 @@ export function App() {
         ...current,
         { type: 'status', name: event.type, status: event.message }
       ]);
+    }
+  }
+
+  async function handleCopyDiagnostics() {
+    const payload = createDiagnosticsPayload({
+      extensionVersion: EXTENSION_VERSION,
+      browser: 'unknown',
+      gatewayUrl: settings.gatewayUrl,
+      mode: settings.mode,
+      connectionState,
+      capabilities: probeResult.capabilities,
+      contextScope,
+      lastVisibleErrorCategory: activeError ? 'visible_error' : undefined,
+      redactionCounts: lastReceipt.redactions ? { total: lastReceipt.redactions } : {}
+    });
+
+    const text = JSON.stringify(payload, null, 2);
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      setDiagnosticsCopied(true);
     }
   }
 
@@ -480,8 +502,8 @@ export function App() {
       <section className="diagnostics" aria-label="Diagnostics">
         <div className="section-heading">
           <h2>Diagnostics</h2>
-          <button type="button" disabled>
-            Copy diagnostics
+          <button type="button" onClick={() => void handleCopyDiagnostics()}>
+            {diagnosticsCopied ? 'Diagnostics copied' : 'Copy diagnostics'}
           </button>
         </div>
         <dl>

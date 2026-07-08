@@ -9,7 +9,8 @@
 - Phase 3 Browser Context Protocol 與 context extraction 已完成第一個可驗收切片：`chat_only` protection、active tab safe metadata、selected text、page title/meta/headings/paragraphs/links/buttons/form labels、payload char limit、truncation receipt、untrusted wrapper、YouTube transcript disabled stub。
 - Phase 4 Side Panel UI 已完成工作台骨架：conversation preview、Tool activity strip、What Hermes saw、Diagnostics section、Dev Handoff clipboard-only quick actions。
 - Restricted page classifier、secret redaction pipeline、chat streaming 已完成第一個可驗收切片，並整合進 content extraction / Side Panel send flow。
-- 尚未實作 diagnostics copy payload、E2E/manual browser QA、Cancel streaming、Retry last message、Local message history per tab/session。
+- Diagnostics copy payload 已完成第一個可驗收切片，輸出 extension/browser/gateway origin/mode/state/capabilities/context/redaction counts，排除 token/cookie/page text/selected text/full URL/tab title。
+- 尚未實作 E2E/manual browser QA、Cancel streaming、Retry last message、Local message history per tab/session。
 - `npm install` 完成，並已將 Vitest 升級到 4.x；`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 
 ### 最新驗證
@@ -50,6 +51,13 @@ npm audit --audit-level=moderate
 - 新增 `tests/restricted-pages.test.ts`、`tests/redaction.test.ts`、`tests/stream-parser.test.ts`、`tests/chat-streaming.test.ts`。
 - 驗收結果：`npm run verify` 通過（10 test files、58 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 - 壓縮結果：`npm run package` 通過，產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`（artifact 目錄依 `.gitignore` 不納入 commit）。
+
+### 2026-07-08 Diagnostics 驗收紀錄
+
+- 新增 `src/shared/diagnostics.ts`，建立安全 diagnostics payload。
+- 更新 `src/sidepanel/App.tsx`，接上 Copy Diagnostics button。
+- 新增 `tests/diagnostics.test.ts`，確認 diagnostics 不含 token/cookie/page text/selected text/full tab URL/tab title，且 gateway 只保留 origin。
+- 驗收結果：`npm run verify` 通過（11 test files、59 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities，`npm run package` 產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`。
 
 ## 1. 最終交付物
 

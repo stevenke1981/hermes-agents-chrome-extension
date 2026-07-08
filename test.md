@@ -128,14 +128,14 @@ https://vault.example.com/passwords
 
 必測：
 
-- [ ] diagnostics 不含 token。
-- [ ] diagnostics 不含 bearer。
-- [ ] diagnostics 不含 cookie。
-- [ ] diagnostics 不含 full URL。
-- [ ] diagnostics 不含 page text。
-- [ ] diagnostics 不含 selected text。
-- [ ] diagnostics 有 extension version。
-- [ ] diagnostics 有 gateway origin sanitized。
+- [x] diagnostics 不含 token。
+- [x] diagnostics 不含 bearer。
+- [x] diagnostics 不含 cookie。
+- [x] diagnostics 不含 full URL。
+- [x] diagnostics 不含 page text。
+- [x] diagnostics 不含 selected text。
+- [x] diagnostics 有 extension version。
+- [x] diagnostics 有 gateway origin sanitized。
 
 ## 5. Integration Tests
 
