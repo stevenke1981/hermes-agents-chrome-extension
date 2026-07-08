@@ -11,6 +11,7 @@
 - Restricted page classifier、secret redaction pipeline、chat streaming 已完成第一個可驗收切片，並整合進 content extraction / Side Panel send flow。
 - Diagnostics copy payload 已完成第一個可驗收切片，輸出 extension/browser/gateway origin/mode/state/capabilities/context/redaction counts，排除 token/cookie/page text/selected text/full URL/tab title。
 - Priority regression pass 已完成：Authorization header normalization、quoted Bearer redaction、transcript history accumulation、runtime selector binding、agent-mode system prompt、content extraction timeout、browser family detection、YouTube visible transcript extraction、Web Crypto origin hash。
+- Adapter cleanup pass 已完成：REST headers helper、Dashboard WebSocket minimal adapter、YouTube script transcript cue extraction、8642 API key Bearer token settings guidance。
 - 尚未實作 E2E/manual browser QA、Cancel streaming、Retry last message。
 - `npm install` 完成，並已將 Vitest 升級到 4.x；`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 
@@ -72,6 +73,14 @@ npm audit --audit-level=moderate
 - YouTube transcript adapter 在 explicit enabled 時可抽取 visible transcript segments。
 - restricted origin hash 新增 Web Crypto SHA-256 async path。
 - 驗收結果：`npm audit --audit-level=moderate` 回報 0 vulnerabilities；`npm run verify` 通過（13 test files、69 tests、`tsc --noEmit`、manifest check、security sink check）；`npm run build` 通過；`npm run lint` 通過；`npm run package` 產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`。
+
+### 2026-07-08 Adapter cleanup 驗收紀錄
+
+- 清理 `src/gateway/rest-adapter.ts` request headers 建構，避免語法/形狀可讀性疑慮。
+- 將 `src/gateway/ws-adapter.ts` 從 throw-only stub 擴為 minimal dashboard WebSocket adapter，可送 auth hello 並串流 delta/tool/warning/error/done events。
+- 擴充 `src/content/youtube-transcript.ts`，除 visible transcript segments 外，也可讀取 script JSON transcript cues。
+- 更新 Side Panel token help text，明確指示 local port `8642` 使用 Hermes `API_SERVER_KEY`，以 `Authorization: Bearer` 傳送，並只存 extension settings。
+- 新增/更新 `tests/ws-adapter.test.ts`、`tests/youtube-transcript.test.ts`、`tests/gateway-client.test.ts`、`tests/sidepanel-ui.test.tsx`。
 
 ## 1. 最終交付物
 

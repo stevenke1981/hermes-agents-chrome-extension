@@ -116,11 +116,7 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
     try {
       const response = await fetch(new URL(path, `${baseUrl}/`), {
         ...init,
-        headers: {
-          Accept: 'application/json',
-          ...init.headers,
-          ...(authorizationHeader ? { Authorization: authorizationHeader } : {})
-        },
+        headers: buildRequestHeaders(init.headers, authorizationHeader),
         signal: controller.signal
       });
 
@@ -191,13 +187,24 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
   };
 }
 
-function buildAuthorizationHeader(token?: string): string | undefined {
+export function buildAuthorizationHeader(token?: string): string | undefined {
   const trimmed = token?.trim();
   if (!trimmed) {
     return undefined;
   }
 
   return /^Bearer\s+/i.test(trimmed) ? trimmed.replace(/^Bearer\s+/i, 'Bearer ') : `Bearer ${trimmed}`;
+}
+
+function buildRequestHeaders(
+  initHeaders: HeadersInit | undefined,
+  authorizationHeader: string | undefined
+): HeadersInit {
+  return {
+    Accept: 'application/json',
+    ...initHeaders,
+    ...(authorizationHeader ? { Authorization: authorizationHeader } : {})
+  };
 }
 
 export async function probeGateway(settings: GatewaySettings): Promise<GatewayProbeResult> {

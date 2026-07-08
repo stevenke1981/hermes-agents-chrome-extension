@@ -135,6 +135,10 @@ https://vault.example.com/passwords
 - [x] Diagnostics 可偵測 Chrome / Edge / Brave / Chromium。
 - [x] YouTube transcript adapter 可在 explicit enabled 時讀取 visible transcript segments。
 - [x] restricted origin hash 可使用 Web Crypto SHA-256。
+- [x] REST adapter request headers 有穩定 helper，避免 Authorization shape regression。
+- [x] Dashboard WebSocket adapter 可建立 sanitized `ws(s)://.../api/ws` URL、送出 auth hello、串流 delta/done。
+- [x] YouTube transcript adapter 可讀取 script JSON transcript cues。
+- [x] Extension Settings UI 明確提示在 port 8642 輸入 Hermes `API_SERVER_KEY`，並以 `Authorization: Bearer` 傳送。
 
 ### 4.4 Diagnostics tests
 

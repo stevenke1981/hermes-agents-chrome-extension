@@ -27,4 +27,12 @@ describe('Phase 4 side panel workspace UI', () => {
     expect(html).toContain('Copy prompt for OpenCode');
     expect(html).not.toContain('Write to repo');
   });
+
+  it('guides users to enter the Hermes API key as a Bearer token in extension settings', () => {
+    const html = renderToStaticMarkup(<App />);
+
+    expect(html).toContain('http://127.0.0.1:8642');
+    expect(html).toContain('Paste the Hermes API_SERVER_KEY');
+    expect(html).toContain('Authorization: Bearer');
+  });
 });

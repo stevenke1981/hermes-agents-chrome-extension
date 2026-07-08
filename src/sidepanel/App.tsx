@@ -340,6 +340,9 @@ export function App() {
               onChange={(event) => setTokenInput(event.target.value)}
               placeholder={settings.tokenSavedAt ? 'Saved token masked' : 'Optional token'}
             />
+            <span className="field-help">
+              Paste the Hermes API_SERVER_KEY for port 8642. It is sent as Authorization: Bearer and stored only in extension settings.
+            </span>
           </label>
           <div className="connection-actions" aria-label="Connection actions">
             <button type="button" onClick={() => void handleTestConnection()} disabled={connectionState === 'connecting'}>

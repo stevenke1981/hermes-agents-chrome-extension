@@ -58,6 +58,23 @@ describe('Hermes REST gateway adapter', () => {
     );
   });
 
+  it('builds request headers without exposing an undefined auth header', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ ok: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = createHermesRestClient({ ...settings, token: undefined });
+    await client.health();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      new URL('http://127.0.0.1:8642/health'),
+      expect.objectContaining({
+        headers: expect.not.objectContaining({
+          Authorization: expect.anything()
+        })
+      })
+    );
+  });
+
   it('normalizes common list response shapes', async () => {
     vi.stubGlobal(
       'fetch',

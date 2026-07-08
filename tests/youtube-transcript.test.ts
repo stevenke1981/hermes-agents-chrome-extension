@@ -28,4 +28,25 @@ describe('YouTube transcript adapter stub', () => {
       text: 'First line\nSecond line'
     });
   });
+
+  it('extracts transcript cues embedded in YouTube player response JSON', async () => {
+    const root = {
+      querySelectorAll(selector: string) {
+        if (selector === 'script') {
+          return [
+            {
+              textContent:
+                'var ytInitialPlayerResponse = {"captions":{"playerCaptionsTracklistRenderer":{"captionTracks":[{"baseUrl":"https://example.com/timedtext"}]}},"transcript":{"cues":[{"text":"JSON first"},{"text":"JSON second"}]}}};'
+            }
+          ];
+        }
+        return [];
+      }
+    };
+
+    await expect(getYouTubeTranscriptContext({ enabled: true, root })).resolves.toEqual({
+      available: true,
+      text: 'JSON first\nJSON second'
+    });
+  });
 });

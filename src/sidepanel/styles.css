@@ -200,6 +200,12 @@ dd {
   font-size: 12px;
 }
 
+.field-help {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .selectors label {
   flex: 1 1 0;
   min-width: 0;

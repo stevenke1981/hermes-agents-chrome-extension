@@ -59,6 +59,7 @@
 - [x] 實作 `listCapabilities()`
 - [x] 實作 REST adapter
 - [x] 實作 WebSocket adapter stub
+- [x] 實作 Dashboard WebSocket minimal adapter
 - [x] 實作 timeout / abort controller
 - [x] 實作 token header：`Authorization: Bearer <token>`
 - [x] 錯誤訊息 redaction
@@ -78,6 +79,7 @@
 - [x] 建立 form labels extractor
 - [ ] 建立 open tabs summary，預設 off
 - [x] 建立 YouTube transcript adapter stub
+- [x] 建立 YouTube transcript visible/script cue extractor
 - [x] 建立 payload char limit
 - [x] 建立 truncation flag
 - [x] 建立 context receipt generator
@@ -199,6 +201,7 @@
 - [x] Chat streaming adapter tests
 - [x] Diagnostics redaction tests
 - [x] Priority regression tests：Authorization header、Bearer redaction、transcript history、runtime dropdowns、agent prompt、content timeout、browser detection、YouTube transcript、Web Crypto hash
+- [x] Adapter cleanup tests：REST request headers、Dashboard WebSocket adapter、YouTube script cues、Bearer token settings guidance
 - [ ] Playwright extension load test
 - [ ] Manual Chrome test
 - [ ] Manual Edge test
