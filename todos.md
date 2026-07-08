@@ -33,54 +33,54 @@
 
 ## 2. Side Panel 基礎 UI
 
-- [ ] Header：logo、extension name、status chip
-- [ ] Connection panel：gateway URL、mode、token field、test/save/clear
-- [ ] Model selector
-- [ ] Profile selector
-- [ ] Session selector
-- [ ] Agent mode picker
-- [ ] Context scope picker
-- [ ] Composer
-- [ ] Message list
+- [x] Header：logo、extension name、status chip
+- [x] Connection panel：gateway URL、mode、token field、test/save/clear
+- [x] Model selector
+- [x] Profile selector
+- [x] Session selector
+- [x] Agent mode picker
+- [x] Context scope picker
+- [x] Composer
+- [x] Message list
 - [ ] Settings drawer
 - [ ] Diagnostics drawer
-- [ ] Toast / error banner
+- [x] Toast / error banner
 - [ ] Light/dark theme
 - [ ] Keyboard navigation
 
 ## 3. Gateway Client
 
-- [ ] 建立 `HermesGatewayClient` interface
-- [ ] 實作 `health()`
-- [ ] 實作 `listModels()`
-- [ ] 實作 `listSessions()`
-- [ ] 實作 `listSkills()`
-- [ ] 實作 `listProfiles()`
-- [ ] 實作 `listCapabilities()`
-- [ ] 實作 REST adapter
-- [ ] 實作 WebSocket adapter stub
-- [ ] 實作 timeout / abort controller
-- [ ] 實作 token header：`Authorization: Bearer <token>`
-- [ ] 錯誤訊息 redaction
-- [ ] Gateway origin sanitizer
-- [ ] ConnectedWithWarning 狀態
+- [x] 建立 `HermesGatewayClient` interface
+- [x] 實作 `health()`
+- [x] 實作 `listModels()`
+- [x] 實作 `listSessions()`
+- [x] 實作 `listSkills()`
+- [x] 實作 `listProfiles()`
+- [x] 實作 `listCapabilities()`
+- [x] 實作 REST adapter
+- [x] 實作 WebSocket adapter stub
+- [x] 實作 timeout / abort controller
+- [x] 實作 token header：`Authorization: Bearer <token>`
+- [x] 錯誤訊息 redaction
+- [x] Gateway origin sanitizer
+- [x] ConnectedWithWarning 狀態
 
 ## 4. Context Extraction
 
-- [ ] 建立 `BrowserContextV1` types
-- [ ] 建立 active tab metadata extractor
-- [ ] 建立 selected text extractor
-- [ ] 建立 page title/meta extractor
-- [ ] 建立 headings extractor
-- [ ] 建立 paragraph/text extractor
-- [ ] 建立 links extractor
-- [ ] 建立 buttons extractor
-- [ ] 建立 form labels extractor
+- [x] 建立 `BrowserContextV1` types
+- [x] 建立 active tab metadata extractor
+- [x] 建立 selected text extractor
+- [x] 建立 page title/meta extractor
+- [x] 建立 headings extractor
+- [x] 建立 paragraph/text extractor
+- [x] 建立 links extractor
+- [x] 建立 buttons extractor
+- [x] 建立 form labels extractor
 - [ ] 建立 open tabs summary，預設 off
-- [ ] 建立 YouTube transcript adapter stub
-- [ ] 建立 payload char limit
-- [ ] 建立 truncation flag
-- [ ] 建立 context receipt generator
+- [x] 建立 YouTube transcript adapter stub
+- [x] 建立 payload char limit
+- [x] 建立 truncation flag
+- [x] 建立 context receipt generator
 
 ## 5. Restricted Pages
 
@@ -128,7 +128,7 @@
 
 ## 8. What Hermes Saw
 
-- [ ] 顯示 context scope
+- [x] 顯示 context scope
 - [ ] 顯示 active tab origin 或 blocked category
 - [ ] 顯示 selected text 是否包含
 - [ ] 顯示 page text char count
@@ -191,6 +191,9 @@
 - [x] `npm run check:manifest`
 - [x] `npm run verify`
 - [x] `npm run build`
+- [x] Phase 3 Browser Context Protocol unit tests
+- [x] Phase 3 extractor unit tests
+- [x] Phase 4 Side Panel workspace render tests
 - [ ] Playwright extension load test
 - [ ] Manual Chrome test
 - [ ] Manual Edge test

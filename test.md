@@ -98,13 +98,29 @@ https://vault.example.com/passwords
 
 必測：
 
-- [ ] `chat_only` 不包含 activeTab/page/openTabs。
-- [ ] `follow_active_tab` 包含 activeTab + page。
-- [ ] payload char limit 生效。
-- [ ] truncation flag 正確。
-- [ ] untrusted wrapper 包住 context。
-- [ ] protocol id 固定：`hermes.browser.context.v1`。
-- [ ] createdAt 是 ISO string。
+- [x] `chat_only` 不包含 activeTab/page/openTabs。
+- [x] `follow_active_tab` 包含 activeTab + page。
+- [x] payload char limit 生效。
+- [x] truncation flag 正確。
+- [x] untrusted wrapper 包住 context。
+- [x] protocol id 固定：`hermes.browser.context.v1`。
+- [x] createdAt 是 ISO string。
+
+### 4.5 Phase 3 extractor tests（2026-07-08）
+
+檔案：`tests/extractors.test.ts`、`tests/youtube-transcript.test.ts`
+
+- [x] page title / meta description extraction。
+- [x] headings / paragraphs / links / buttons / form labels extraction。
+- [x] noisy repeated page output limits。
+- [x] YouTube transcript adapter stub 預設 disabled 且不合成 transcript 文字。
+
+### 4.6 Phase 4 side panel workspace tests（2026-07-08）
+
+檔案：`tests/sidepanel-ui.test.tsx`
+
+- [x] Side Panel render 包含 connection、context、agent mode、conversation、Tool activity、What Hermes saw、Diagnostics。
+- [x] Dev Handoff quick actions 僅提供 clipboard copy action，不提供 direct filesystem write。
 
 ### 4.4 Diagnostics tests
 
@@ -148,6 +164,16 @@ GET /api/ws
 - [ ] capabilities 控制 UI feature flags。
 - [ ] chat streaming 能逐 chunk 顯示。
 - [ ] runtime traceback → ConnectedWithWarning。
+
+### 5.2 Phase 2 adapter unit coverage（2026-07-08）
+
+檔案：`tests/gateway-client.test.ts`
+
+- [x] `health()` 呼叫 `/health` 並帶 `Authorization: Bearer <token>`。
+- [x] list endpoint 可正規化 `{ data: [...] }` 與 string list。
+- [x] token-shaped error text 會 redacted。
+- [x] optional catalog endpoint 失敗時回傳 `connected_with_warning`。
+- [x] remote HTTP gateway 顯示安全警告。
 
 ## 6. E2E Tests
 

@@ -11,12 +11,172 @@ export type ConnectionState =
   | 'fallback'
   | 'error';
 
+export type GatewayMode = 'local_api' | 'remote_api' | 'remote_dashboard_ws';
+
 export interface GatewaySettings {
-  mode: 'local_api' | 'remote_api' | 'remote_dashboard_ws';
+  mode: GatewayMode;
   gatewayUrl: string;
+  token?: string;
   tokenSavedAt?: string;
   allowInsecureRemoteHttp: boolean;
   corsExtensionId?: string;
+}
+
+export interface HealthStatus {
+  ok: boolean;
+  status?: string;
+  version?: string;
+  raw?: unknown;
+}
+
+export interface ModelInfo {
+  id: string;
+  name?: string;
+  provider?: string;
+}
+
+export interface SessionInfo {
+  id: string;
+  title?: string;
+  updatedAt?: string;
+}
+
+export interface SkillInfo {
+  id: string;
+  name?: string;
+  description?: string;
+}
+
+export interface ProfileInfo {
+  id: string;
+  name?: string;
+}
+
+export interface CapabilityInfo {
+  flags: Record<string, boolean>;
+  raw?: unknown;
+}
+
+export type BrowserFamily = 'chrome' | 'edge' | 'brave' | 'chromium' | 'unknown';
+
+export interface SafeTabInfo {
+  origin: string;
+  title?: string;
+  tabId?: number;
+  windowId?: number;
+}
+
+export interface RedactedTextBlock {
+  text: string;
+  originalChars: number;
+}
+
+export interface PageLinkContext {
+  text: string;
+  href: string;
+}
+
+export interface PageContext {
+  title?: string;
+  metaDescription?: string;
+  headings?: string[];
+  text: string;
+  links?: PageLinkContext[];
+  buttons?: string[];
+  formLabels?: string[];
+}
+
+export interface AttachmentContext {
+  name: string;
+  mimeType?: string;
+  size?: number;
+}
+
+export interface RedactionEvent {
+  type:
+    | 'bearer'
+    | 'api_key'
+    | 'jwt'
+    | 'private_key'
+    | 'secret_assignment'
+    | 'url_secret'
+    | 'cookie_like';
+  count: number;
+  location: 'page_text' | 'selected_text' | 'url' | 'tab_title' | 'attachment';
+}
+
+export interface RestrictedPageResult {
+  blocked: boolean;
+  category: string;
+  originHash?: string;
+}
+
+export interface BrowserContextV1 {
+  protocol: 'hermes.browser.context.v1';
+  id: string;
+  createdAt: string;
+  scope: ContextScope;
+  source: {
+    browser: BrowserFamily;
+    extensionVersion: string;
+    tabId?: number;
+    windowId?: number;
+  };
+  activeTab?: SafeTabInfo;
+  selectedText?: RedactedTextBlock;
+  page?: PageContext;
+  openTabs?: SafeTabInfo[];
+  attachments?: AttachmentContext[];
+  redactions: RedactionEvent[];
+  limits: {
+    maxChars: number;
+    truncated: boolean;
+    originalChars?: number;
+    sentChars: number;
+  };
+  restricted?: RestrictedPageResult;
+}
+
+export interface BrowserContextBuildInput {
+  scope: ContextScope;
+  source: BrowserContextV1['source'];
+  activeTab?: SafeTabInfo;
+  selectedText?: string;
+  page?: PageContext;
+  openTabs?: SafeTabInfo[];
+  attachments?: AttachmentContext[];
+  redactions?: RedactionEvent[];
+  restricted?: RestrictedPageResult;
+  maxChars?: number;
+}
+
+export interface BrowserContextReceipt {
+  scope: ContextScope;
+  page?: string;
+  blockedCategory?: string;
+  browserContentSent: boolean;
+  selectedTextIncluded: boolean;
+  pageTextChars: number;
+  openTabsSent: number;
+  attachmentsSent: number;
+  redactions: number;
+  truncated: boolean;
+}
+
+export interface GatewayCatalog {
+  health?: HealthStatus;
+  models: ModelInfo[];
+  sessions: SessionInfo[];
+  skills: SkillInfo[];
+  profiles: ProfileInfo[];
+  capabilities?: CapabilityInfo;
+}
+
+export interface GatewayProbeResult extends GatewayCatalog {
+  state: Extract<ConnectionState, 'connected' | 'connected_with_warning' | 'error'>;
+  gatewayOrigin?: string;
+  warnings: string[];
+  error?: string;
 }
 
 export interface SidePanelState {

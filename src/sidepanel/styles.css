@@ -30,12 +30,14 @@ body {
 }
 
 button,
+input,
 select,
 textarea {
   font: inherit;
 }
 
 button,
+input,
 select {
   min-height: 34px;
 }
@@ -54,6 +56,7 @@ button:disabled {
 }
 
 button:focus-visible,
+input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--accent);
@@ -72,7 +75,10 @@ textarea:focus-visible {
 .connection,
 .selectors,
 .context-bar,
+.tool-activity,
 .receipt,
+.dev-handoff,
+.diagnostics,
 .composer {
   border-bottom: 1px solid var(--border);
   padding-bottom: 12px;
@@ -80,12 +86,16 @@ textarea:focus-visible {
 
 .topbar,
 .topbar > div,
-.connection,
 .selectors {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.connection {
+  display: grid;
+  gap: 10px;
 }
 
 .product-mark {
@@ -122,11 +132,48 @@ dd {
   color: var(--muted);
 }
 
+.status-chip.connected {
+  border-color: rgba(49, 196, 141, 0.75);
+  color: var(--accent);
+}
+
+.status-chip.connected_with_warning,
+.status-chip.fallback {
+  border-color: rgba(245, 158, 11, 0.75);
+  color: #f59e0b;
+}
+
+.status-chip.error {
+  border-color: rgba(239, 68, 68, 0.75);
+  color: var(--danger);
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading p {
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .connection button {
   padding: 0 14px;
 }
 
+.connection-grid {
+  display: grid;
+  gap: 8px;
+}
+
 .selectors label,
+.connection-grid label,
 .context-bar label,
 .composer label {
   display: grid;
@@ -136,9 +183,11 @@ dd {
 }
 
 .selectors label {
-  width: 50%;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
+input,
 select,
 textarea {
   width: 100%;
@@ -150,6 +199,46 @@ textarea {
 
 select {
   padding: 0 10px;
+}
+
+input {
+  padding: 0 10px;
+}
+
+.connection-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.connection-actions button {
+  min-width: 0;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.warning-banner,
+.error-banner,
+.warning-list {
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 7px;
+  margin: 0;
+  padding: 8px;
+  background: rgba(245, 158, 11, 0.08);
+  color: #f5c26b;
+}
+
+.error-banner {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+}
+
+.warning-list {
+  display: grid;
+  gap: 4px;
+  padding-left: 24px;
+  font-size: 12px;
 }
 
 .context-bar {
@@ -180,19 +269,68 @@ select {
 }
 
 .transcript {
-  display: grid;
   min-height: 180px;
-  align-items: center;
-  justify-items: center;
+}
+
+.message-list,
+.tool-activity,
+.dev-handoff,
+.diagnostics {
+  display: grid;
+  gap: 8px;
+}
+
+.message {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px;
+  background: var(--panel);
+}
+
+.message strong {
+  font-size: 12px;
+}
+
+.system-message {
+  border-style: dashed;
+  background: transparent;
 }
 
 .empty-state {
   color: var(--muted);
 }
 
+.catalog-summary {
+  align-self: start;
+}
+
 .receipt {
   display: grid;
   gap: 8px;
+}
+
+.tool-activity ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-actions button,
+.diagnostics button {
+  min-width: 0;
+  padding: 0 8px;
+  font-size: 12px;
 }
 
 dl {
