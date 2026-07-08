@@ -69,6 +69,38 @@ export function createBlockedBrowserContext(input: {
   });
 }
 
+export async function createBlockedBrowserContextWithSecureHash(input: {
+  url: string;
+  scope: ContextScope;
+  source: BrowserContextV1['source'];
+}): Promise<BrowserContextV1> {
+  const restricted = isRestrictedPage(input.url);
+  let originHash = restricted.originHash;
+  try {
+    originHash = await hashOriginWithWebCrypto(new URL(input.url).origin);
+  } catch {
+    originHash = restricted.originHash;
+  }
+
+  return buildBrowserContext({
+    scope: input.scope,
+    source: input.source,
+    restricted: {
+      blocked: true,
+      category: restricted.category ?? 'browser_internal',
+      originHash
+    }
+  });
+}
+
+export async function hashOriginWithWebCrypto(origin: string): Promise<string> {
+  const bytes = new TextEncoder().encode(origin);
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 function matchesAny(url: URL, terms: string[]): boolean {
   const haystack = `${url.hostname} ${url.pathname}`.toLowerCase();
   return terms.some((term) => haystack.includes(term));

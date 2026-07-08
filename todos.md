@@ -45,7 +45,7 @@
 - [ ] Settings drawer
 - [ ] Diagnostics drawer
 - [x] Toast / error banner
-- [ ] Light/dark theme
+- [x] Light/dark theme
 - [ ] Keyboard navigation
 
 ## 3. Gateway Client
@@ -117,13 +117,13 @@
 
 - [x] Message model
 - [x] Send turn input builder
-- [ ] Agent mode prompt prefix
+- [x] Agent mode prompt prefix
 - [x] Untrusted context wrapper
 - [x] Hermes stream parser
 - [x] Tool activity event normalizer
 - [ ] Cancel streaming
 - [ ] Retry last message
-- [ ] Local message history per tab/session
+- [x] Local message history per tab/session
 - [ ] Clear conversation
 
 ## 8. What Hermes Saw
@@ -132,10 +132,10 @@
 - [x] 顯示 active tab origin 或 blocked category
 - [x] 顯示 selected text 是否包含
 - [x] 顯示 page text char count
-- [ ] 顯示 open tabs sent count
-- [ ] 顯示 attachments count
+- [x] 顯示 open tabs sent count
+- [x] 顯示 attachments count
 - [x] 顯示 redaction count
-- [ ] 顯示 truncation status
+- [x] 顯示 truncation status
 - [x] blocked 時顯示 no browser content sent
 
 ## 9. Diagnostics
@@ -198,6 +198,7 @@
 - [x] Redaction unit tests ≥ 20 cases
 - [x] Chat streaming adapter tests
 - [x] Diagnostics redaction tests
+- [x] Priority regression tests：Authorization header、Bearer redaction、transcript history、runtime dropdowns、agent prompt、content timeout、browser detection、YouTube transcript、Web Crypto hash
 - [ ] Playwright extension load test
 - [ ] Manual Chrome test
 - [ ] Manual Edge test

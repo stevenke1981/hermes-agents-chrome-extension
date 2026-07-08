@@ -5,6 +5,7 @@ import { redactBrowserContextInput, redactText } from '../src/content/redaction'
 describe('secret redaction pipeline', () => {
   const cases: Array<[string, string]> = [
     ['Authorization: Bearer abc123SECRET', '[REDACTED_BEARER]'],
+    ['Authorization: Bearer "quoted-secret-token"', 'Authorization: Bearer [REDACTED_BEARER]'],
     ['OPENAI_API_KEY=sk-1234567890abcdef', '[REDACTED_SECRET_ASSIGNMENT]'],
     ['ANTHROPIC_API_KEY=sk-ant-abc123456789', '[REDACTED_SECRET_ASSIGNMENT]'],
     ['GOOGLE_API_KEY=AIzaSyA123456789012345678901234567890', '[REDACTED_API_KEY]'],

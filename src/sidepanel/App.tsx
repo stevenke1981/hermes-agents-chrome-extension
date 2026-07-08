@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createHermesRestClient, probeGateway, redactSensitiveText } from '../gateway/rest-adapter';
 import { wrapUntrustedBrowserContext } from '../shared/browser-context-protocol';
 import { AGENT_MODES, CONTEXT_SCOPES, EXTENSION_NAME, EXTENSION_VERSION } from '../shared/constants';
-import { createDiagnosticsPayload } from '../shared/diagnostics';
+import { createDiagnosticsPayload, detectBrowserFamily } from '../shared/diagnostics';
 import {
   clearStoredGatewayToken,
   DEFAULT_GATEWAY_SETTINGS,
@@ -21,6 +21,13 @@ import type {
   BrowserContextV1,
   HermesStreamEvent
 } from '../shared/types';
+import {
+  appendPendingTurn,
+  applyDeltaToTranscript,
+  buildAgentModeSystemPrompt,
+  resolveSelectedRuntime
+} from './conversation';
+import type { TranscriptMessage } from './conversation';
 
 const agentLabels: Record<AgentMode, string> = {
   general_chat: 'Chat',
@@ -73,11 +80,6 @@ const emptyProbe: GatewayProbeResult = {
   warnings: []
 };
 
-type TranscriptMessage = {
-  role: 'system' | 'user' | 'hermes';
-  text: string;
-};
-
 type ToolActivity = Extract<HermesStreamEvent, { type: 'tool' }> | { type: 'status'; name: string; status: string };
 
 export function App() {
@@ -88,6 +90,10 @@ export function App() {
   const [activeError, setActiveError] = useState<string | undefined>();
   const [diagnosticsCopied, setDiagnosticsCopied] = useState(false);
   const [contextScope, setContextScope] = useState<ContextScope>('chat_only');
+  const [agentMode, setAgentMode] = useState<AgentMode>('general_chat');
+  const [selectedModelId, setSelectedModelId] = useState('');
+  const [selectedProfileId, setSelectedProfileId] = useState('');
+  const [selectedSessionId, setSelectedSessionId] = useState('');
   const [messageText, setMessageText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [transcript, setTranscript] = useState<TranscriptMessage[]>([
@@ -203,10 +209,7 @@ export function App() {
     setMessageText('');
     setActiveError(undefined);
     setIsStreaming(true);
-    setTranscript([
-      { role: 'user', text: message },
-      { role: 'hermes', text: '' }
-    ]);
+    setTranscript((current) => appendPendingTurn(current, message));
 
     try {
       const context = contextScope === 'chat_only' ? undefined : await extractContextFromActiveTab(contextScope);
@@ -228,11 +231,16 @@ export function App() {
       }
 
       const client = createHermesRestClient(settings);
+      const runtime = resolveSelectedRuntime({
+        selectedModelId,
+        selectedProfileId,
+        selectedSessionId
+      });
+      const browserContext = context ? wrapUntrustedBrowserContext(context.context) : undefined;
       for await (const event of client.sendTurn({
         message,
-        model: probeResult.models[0]?.id,
-        sessionId: probeResult.sessions[0]?.id,
-        context: context ? wrapUntrustedBrowserContext(context.context) : undefined
+        ...runtime,
+        context: buildAgentModeSystemPrompt(agentMode, browserContext)
       })) {
         applyStreamEvent(event);
       }
@@ -247,13 +255,7 @@ export function App() {
 
   function applyStreamEvent(event: HermesStreamEvent) {
     if (event.type === 'delta') {
-      setTranscript((current) =>
-        current.map((message, index) =>
-          index === current.length - 1 && message.role === 'hermes'
-            ? { ...message, text: `${message.text}${event.text}` }
-            : message
-        )
-      );
+      setTranscript((current) => applyDeltaToTranscript(current, event.text));
       return;
     }
 
@@ -273,7 +275,7 @@ export function App() {
   async function handleCopyDiagnostics() {
     const payload = createDiagnosticsPayload({
       extensionVersion: EXTENSION_VERSION,
-      browser: 'unknown',
+      browser: detectBrowserFamily(navigator.userAgent, getNavigatorBrands()),
       gatewayUrl: settings.gatewayUrl,
       mode: settings.mode,
       connectionState,
@@ -298,6 +300,7 @@ export function App() {
           <h1>{EXTENSION_NAME}</h1>
         </div>
         <button className={`status-chip ${connectionState}`} type="button" aria-label="Connection settings">
+          {connectionState === 'connecting' ? <span className="spinner" aria-hidden="true" /> : null}
           {connectionLabels[connectionState]}
         </button>
       </header>
@@ -364,8 +367,8 @@ export function App() {
       <section className="selectors" aria-label="Runtime selectors">
         <label>
           Model
-          <select defaultValue="auto">
-            <option value="auto">Hermes / auto</option>
+          <select value={selectedModelId} onChange={(event) => setSelectedModelId(event.target.value)}>
+            <option value="">Hermes / auto</option>
             {probeResult.models.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.name ?? model.id}
@@ -375,8 +378,8 @@ export function App() {
         </label>
         <label>
           Profile
-          <select defaultValue="web">
-            <option value="web">Web</option>
+          <select value={selectedProfileId} onChange={(event) => setSelectedProfileId(event.target.value)}>
+            <option value="">Default profile</option>
             {probeResult.profiles.map((profile) => (
               <option key={profile.id} value={profile.id}>
                 {profile.name ?? profile.id}
@@ -386,8 +389,8 @@ export function App() {
         </label>
         <label>
           Session
-          <select defaultValue="new">
-            <option value="new">New session</option>
+          <select value={selectedSessionId} onChange={(event) => setSelectedSessionId(event.target.value)}>
+            <option value="">New session</option>
             {probeResult.sessions.map((session) => (
               <option key={session.id} value={session.id}>
                 {session.title ?? session.id}
@@ -417,7 +420,13 @@ export function App() {
 
       <section className="agent-modes" aria-label="Agent mode">
         {AGENT_MODES.map((mode) => (
-          <button key={mode} type="button" className={mode === 'general_chat' ? 'selected' : ''}>
+          <button
+            key={mode}
+            type="button"
+            className={mode === agentMode ? 'selected' : ''}
+            aria-pressed={mode === agentMode}
+            onClick={() => setAgentMode(mode)}
+          >
             {agentLabels[mode]}
           </button>
         ))}
@@ -547,6 +556,13 @@ export function App() {
       </form>
     </main>
   );
+}
+
+function getNavigatorBrands(): Array<{ brand: string; version?: string }> {
+  const navigatorWithHints = navigator as Navigator & {
+    userAgentData?: { brands?: Array<{ brand: string; version?: string }> };
+  };
+  return navigatorWithHints.userAgentData?.brands ?? [];
 }
 
 async function extractContextFromActiveTab(scope: ContextScope): Promise<

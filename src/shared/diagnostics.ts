@@ -1,4 +1,5 @@
 import type {
+  BrowserFamily,
   CapabilityInfo,
   ConnectionState,
   ContextScope,
@@ -55,6 +56,26 @@ export function summarizeRedactions(events: RedactionEvent[]): Record<string, nu
     counts[event.type] = (counts[event.type] ?? 0) + event.count;
     return counts;
   }, {});
+}
+
+export function detectBrowserFamily(
+  userAgent: string,
+  brands: Array<{ brand: string; version?: string }> = []
+): BrowserFamily {
+  const brandNames = brands.map((brand) => brand.brand.toLowerCase());
+  if (/\bEdg\//.test(userAgent) || brandNames.some((brand) => brand.includes('edge'))) {
+    return 'edge';
+  }
+  if (brandNames.some((brand) => brand.includes('brave'))) {
+    return 'brave';
+  }
+  if (brandNames.some((brand) => brand.includes('chromium'))) {
+    return 'chromium';
+  }
+  if (/\bChrome\//.test(userAgent)) {
+    return 'chrome';
+  }
+  return 'unknown';
 }
 
 function sanitizeGatewayOrigin(gatewayUrl?: string): string | undefined {

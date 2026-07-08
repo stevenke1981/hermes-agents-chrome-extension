@@ -38,6 +38,26 @@ describe('Hermes REST gateway adapter', () => {
     );
   });
 
+  it('does not duplicate the bearer scheme when a pasted token already includes it', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ ok: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = createHermesRestClient({
+      ...settings,
+      token: '  Bearer pasted-token  '
+    });
+    await client.health();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      new URL('http://127.0.0.1:8642/health'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer pasted-token'
+        })
+      })
+    );
+  });
+
   it('normalizes common list response shapes', async () => {
     vi.stubGlobal(
       'fetch',
@@ -51,6 +71,9 @@ describe('Hermes REST gateway adapter', () => {
   it('redacts token-shaped text from safe errors', async () => {
     expect(redactSensitiveText('Authorization: Bearer secret-token token=abc.def.ghi')).toBe(
       'Authorization: Bearer [REDACTED] token=[REDACTED]'
+    );
+    expect(redactSensitiveText('Authorization: Bearer "quoted-secret-token"')).toBe(
+      'Authorization: Bearer [REDACTED]'
     );
   });
 

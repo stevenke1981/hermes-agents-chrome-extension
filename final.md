@@ -10,7 +10,8 @@
 - Phase 4 Side Panel UI 已完成工作台骨架：conversation preview、Tool activity strip、What Hermes saw、Diagnostics section、Dev Handoff clipboard-only quick actions。
 - Restricted page classifier、secret redaction pipeline、chat streaming 已完成第一個可驗收切片，並整合進 content extraction / Side Panel send flow。
 - Diagnostics copy payload 已完成第一個可驗收切片，輸出 extension/browser/gateway origin/mode/state/capabilities/context/redaction counts，排除 token/cookie/page text/selected text/full URL/tab title。
-- 尚未實作 E2E/manual browser QA、Cancel streaming、Retry last message、Local message history per tab/session。
+- Priority regression pass 已完成：Authorization header normalization、quoted Bearer redaction、transcript history accumulation、runtime selector binding、agent-mode system prompt、content extraction timeout、browser family detection、YouTube visible transcript extraction、Web Crypto origin hash。
+- 尚未實作 E2E/manual browser QA、Cancel streaming、Retry last message。
 - `npm install` 完成，並已將 Vitest 升級到 4.x；`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 
 ### 最新驗證
@@ -58,6 +59,19 @@ npm audit --audit-level=moderate
 - 更新 `src/sidepanel/App.tsx`，接上 Copy Diagnostics button。
 - 新增 `tests/diagnostics.test.ts`，確認 diagnostics 不含 token/cookie/page text/selected text/full tab URL/tab title，且 gateway 只保留 origin。
 - 驗收結果：`npm run verify` 通過（11 test files、59 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities，`npm run package` 產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`。
+
+### 2026-07-08 Priority regression 驗收紀錄
+
+- 修復 Gateway Authorization header normalization：使用者貼上 `Bearer <token>` 時不會送出 `Bearer Bearer <token>`。
+- 修復 quoted Bearer token redaction：`Authorization: Bearer "..."` 會被 redacted。
+- 更新 Side Panel 對話狀態：送出新訊息時累積 transcript，不覆蓋歷史。
+- 綁定 Model / Profile / Session selector 到 `sendTurn()` runtime input。
+- 綁定 Agent Mode button 到對應 system prompt。
+- 新增 content extraction timeout fallback，避免 content script extraction 卡住 UI request。
+- 新增 browser family detection，供 diagnostics 與 content context source 使用。
+- YouTube transcript adapter 在 explicit enabled 時可抽取 visible transcript segments。
+- restricted origin hash 新增 Web Crypto SHA-256 async path。
+- 驗收結果：`npm audit --audit-level=moderate` 回報 0 vulnerabilities；`npm run verify` 通過（13 test files、69 tests、`tsc --noEmit`、manifest check、security sink check）；`npm run build` 通過；`npm run lint` 通過；`npm run package` 產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`。
 
 ## 1. 最終交付物
 

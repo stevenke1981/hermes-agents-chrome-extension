@@ -17,6 +17,16 @@ const rules: RedactionRule[] = [
   {
     type: 'bearer',
     replacement: 'Authorization: Bearer [REDACTED_BEARER]',
+    pattern: /Authorization:\s*Bearer\s+"[^"]+"/gi
+  },
+  {
+    type: 'bearer',
+    replacement: 'Bearer [REDACTED_BEARER]',
+    pattern: /\bBearer\s+"[^"]+"/gi
+  },
+  {
+    type: 'bearer',
+    replacement: 'Authorization: Bearer [REDACTED_BEARER]',
     pattern: /Authorization:\s*Bearer\s+[A-Za-z0-9._~+/=-]+/gi
   },
   {

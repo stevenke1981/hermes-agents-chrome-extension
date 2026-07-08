@@ -9,4 +9,23 @@ describe('YouTube transcript adapter stub', () => {
       text: undefined
     });
   });
+
+  it('extracts visible YouTube transcript segments when explicitly enabled', async () => {
+    const root = {
+      querySelectorAll(selector: string) {
+        if (selector === 'ytd-transcript-segment-renderer, [data-testid="transcript-segment"], .segment-text') {
+          return [
+            { textContent: '  First line  ' },
+            { textContent: 'Second line' }
+          ];
+        }
+        return [];
+      }
+    };
+
+    await expect(getYouTubeTranscriptContext({ enabled: true, root })).resolves.toEqual({
+      available: true,
+      text: 'First line\nSecond line'
+    });
+  });
 });

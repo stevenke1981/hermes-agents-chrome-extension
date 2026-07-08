@@ -122,6 +122,20 @@ https://vault.example.com/passwords
 - [x] Side Panel render 包含 connection、context、agent mode、conversation、Tool activity、What Hermes saw、Diagnostics。
 - [x] Dev Handoff quick actions 僅提供 clipboard copy action，不提供 direct filesystem write。
 
+### 4.7 Priority regression tests（2026-07-08）
+
+檔案：`tests/gateway-client.test.ts`、`tests/redaction.test.ts`、`tests/sidepanel-state.test.ts`、`tests/content-timeout.test.ts`、`tests/diagnostics.test.ts`、`tests/youtube-transcript.test.ts`、`tests/restricted-pages.test.ts`
+
+- [x] pasted `Bearer <token>` 不會產生 `Bearer Bearer <token>`。
+- [x] quoted Bearer token 會被 redacted。
+- [x] Transcript 送出下一輪時保留既有對話歷史。
+- [x] Model / Profile / Session dropdown 選擇會解析成 `sendTurn()` input。
+- [x] Agent Mode 會產生對應 system prompt。
+- [x] Content extraction timeout 後回傳最小 read-only context。
+- [x] Diagnostics 可偵測 Chrome / Edge / Brave / Chromium。
+- [x] YouTube transcript adapter 可在 explicit enabled 時讀取 visible transcript segments。
+- [x] restricted origin hash 可使用 Web Crypto SHA-256。
+
 ### 4.4 Diagnostics tests
 
 檔案：`tests/diagnostics.test.ts`

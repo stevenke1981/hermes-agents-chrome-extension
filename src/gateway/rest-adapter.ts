@@ -46,6 +46,8 @@ export class HermesGatewayError extends Error {
 
 export function redactSensitiveText(value: string): string {
   return value
+    .replace(/Authorization:\s*Bearer\s+"[^"]+"/gi, 'Authorization: Bearer [REDACTED]')
+    .replace(/\bBearer\s+"[^"]+"/gi, 'Bearer [REDACTED]')
     .replace(/Authorization:\s*Bearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Authorization: Bearer [REDACTED]')
     .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [REDACTED]')
     .replace(/\b(token|key|auth|api_key|password|secret)=([^&\s]+)/gi, '$1=[REDACTED]')
@@ -94,6 +96,7 @@ export function getRemoteGatewayWarning(settings: GatewaySettings): string | und
 
 export function createHermesRestClient(settings: GatewaySettings): HermesGatewayClient {
   const baseUrl = normalizeGatewayUrl(settings.gatewayUrl);
+  const authorizationHeader = buildAuthorizationHeader(settings.token);
 
   async function requestJson<T>(path: string): Promise<T> {
     const response = await request(path, { method: 'GET' });
@@ -116,7 +119,7 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
         headers: {
           Accept: 'application/json',
           ...init.headers,
-          ...(settings.token ? { Authorization: `Bearer ${settings.token}` } : {})
+          ...(authorizationHeader ? { Authorization: authorizationHeader } : {})
         },
         signal: controller.signal
       });
@@ -186,6 +189,15 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
       yield* readStreamEvents(response);
     }
   };
+}
+
+function buildAuthorizationHeader(token?: string): string | undefined {
+  const trimmed = token?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  return /^Bearer\s+/i.test(trimmed) ? trimmed.replace(/^Bearer\s+/i, 'Bearer ') : `Bearer ${trimmed}`;
 }
 
 export async function probeGateway(settings: GatewaySettings): Promise<GatewayProbeResult> {

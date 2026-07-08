@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createBlockedBrowserContext, isRestrictedPage } from '../src/content/restricted-pages';
+import { createBlockedBrowserContext, hashOriginWithWebCrypto, isRestrictedPage } from '../src/content/restricted-pages';
 
 describe('restricted page classifier', () => {
   it.each([
@@ -44,5 +44,12 @@ describe('restricted page classifier', () => {
     expect(context.limits.sentChars).toBe(0);
     expect(JSON.stringify(context)).not.toContain('checkout.example.com/payment');
     expect(JSON.stringify(context)).not.toContain('token=secret');
+  });
+
+  it('can hash origins with Web Crypto for async sensitive-page receipts', async () => {
+    const hash = await hashOriginWithWebCrypto('https://checkout.example.com');
+
+    expect(hash).toHaveLength(64);
+    expect(hash).toMatch(/^[a-f0-9]+$/);
   });
 });

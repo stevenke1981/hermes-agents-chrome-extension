@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDiagnosticsPayload } from '../src/shared/diagnostics';
+import { createDiagnosticsPayload, detectBrowserFamily } from '../src/shared/diagnostics';
 
 describe('diagnostics payload', () => {
   it('includes safe runtime metadata and excludes sensitive browser content', () => {
@@ -43,5 +43,14 @@ describe('diagnostics payload', () => {
     expect(serialized).not.toContain('sensitive selected text');
     expect(serialized).not.toContain('/path?token=secret');
     expect(serialized).not.toContain('Secret Dashboard');
+  });
+});
+
+describe('browser family detection', () => {
+  it('detects Chromium browser families from user agent and client hints', () => {
+    expect(detectBrowserFamily('Mozilla/5.0 Edg/126.0', [])).toBe('edge');
+    expect(detectBrowserFamily('Mozilla/5.0 Chrome/126.0', [{ brand: 'Brave', version: '126' }])).toBe('brave');
+    expect(detectBrowserFamily('Mozilla/5.0 Chrome/126.0', [{ brand: 'Chromium', version: '126' }])).toBe('chromium');
+    expect(detectBrowserFamily('Mozilla/5.0 Chrome/126.0', [])).toBe('chrome');
   });
 });

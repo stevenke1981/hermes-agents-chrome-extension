@@ -1,8 +1,6 @@
-import { extractPageContext } from './extractors';
-import { redactBrowserContextInput } from './redaction';
-import { createBlockedBrowserContext, isRestrictedPage } from './restricted-pages';
-import { buildBrowserContext, createContextReceipt } from '../shared/browser-context-protocol';
+import { buildContextFromPageWithTimeout } from './context-builder';
 import { EXTENSION_VERSION } from '../shared/constants';
+import { detectBrowserFamily } from '../shared/diagnostics';
 import type { BrowserContextReceipt, BrowserContextV1, ContextScope } from '../shared/types';
 
 type HermesContentRequest = {
@@ -32,24 +30,24 @@ chrome.runtime.onMessage.addListener(
   ) => {
     if (message?.type !== 'HERMES_CONTENT_SCAFFOLD_STATUS') {
       if (message?.type === 'HERMES_EXTRACT_CONTEXT') {
-        const scope = message.scope ?? 'follow_active_tab';
-        const restricted = isRestrictedPage(window.location.href);
-        const context = restricted.blocked
-          ? createBlockedBrowserContext({
-              url: window.location.href,
-              scope,
-              source: {
-                browser: 'unknown',
-                extensionVersion: EXTENSION_VERSION
-              }
-            })
-          : buildSafeContext(scope, message.maxChars);
-
-        sendResponse({
-          ok: true,
-          readOnly: true,
-          context,
-          receipt: createContextReceipt(context)
+        void buildContextFromPageWithTimeout({
+          scope: message.scope ?? 'follow_active_tab',
+          href: window.location.href,
+          origin: window.location.origin,
+          title: document.title,
+          selectedText: window.getSelection()?.toString() ?? undefined,
+          source: {
+            browser: detectBrowserFamily(navigator.userAgent, getNavigatorBrands()),
+            extensionVersion: EXTENSION_VERSION
+          },
+          maxChars: message.maxChars
+        }).then(({ context, receipt }) => {
+          sendResponse({
+            ok: true,
+            readOnly: true,
+            context,
+            receipt
+          });
         });
 
         return true;
@@ -68,27 +66,9 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-function buildSafeContext(scope: ContextScope, maxChars?: number): BrowserContextV1 {
-  const redacted = redactBrowserContextInput({
-    activeTab: {
-      origin: window.location.origin,
-      title: document.title
-    },
-    selectedText: window.getSelection()?.toString() ?? undefined,
-    page: extractPageContext(document)
-  });
-
-  return buildBrowserContext({
-    scope,
-    source: {
-      browser: 'unknown',
-      extensionVersion: EXTENSION_VERSION
-    },
-    activeTab: redacted.activeTab,
-    selectedText: redacted.selectedText,
-    page: redacted.page,
-    redactions: redacted.redactions,
-    maxChars
-  });
+function getNavigatorBrands(): Array<{ brand: string; version?: string }> {
+  const navigatorWithHints = navigator as Navigator & {
+    userAgentData?: { brands?: Array<{ brand: string; version?: string }> };
+  };
+  return navigatorWithHints.userAgentData?.brands ?? [];
 }
-
