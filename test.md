@@ -139,6 +139,11 @@ https://vault.example.com/passwords
 - [x] Dashboard WebSocket adapter 可建立 sanitized `ws(s)://.../api/ws` URL、送出 auth hello、串流 delta/done。
 - [x] YouTube transcript adapter 可讀取 script JSON transcript cues。
 - [x] Extension Settings UI 明確提示在 port 8642 輸入 Hermes `API_SERVER_KEY`，並以 `Authorization: Bearer` 傳送。
+- [x] Dashboard WebSocket `sendTurn()` 使用 `{ type: 'chat', ... }` envelope，而不是 `turn/input` wrapper。
+- [x] Content script 可處理 `HERMES_EXTRACT_YOUTUBE_TRANSCRIPT` read-only message。
+- [x] Side Panel active tab `chrome.tabs.sendMessage()` 有 timeout fallback。
+- [x] Diagnostics copied 狀態會自動重置。
+- [x] Send streaming 狀態有 spinner feedback。
 
 ### 4.4 Diagnostics tests
 

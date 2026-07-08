@@ -398,8 +398,16 @@ textarea {
 }
 
 .composer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   grid-column: 2;
   padding: 0 16px;
+}
+
+.send-spinner {
+  flex: 0 0 auto;
 }
 
 @media (prefers-color-scheme: light) {

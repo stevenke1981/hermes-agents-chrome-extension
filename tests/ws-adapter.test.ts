@@ -50,12 +50,10 @@ describe('dashboard WebSocket adapter', () => {
       { type: 'delta', text: 'Hi' },
       { type: 'done' }
     ]);
-    expect(socket.sent.map((item) => JSON.parse(item)).at(-1)).toMatchObject({
-      type: 'turn',
-      input: {
-        message: 'Hello',
-        model: 'auto'
-      }
+    expect(socket.sent.map((item) => JSON.parse(item)).at(-1)).toEqual({
+      type: 'chat',
+      message: 'Hello',
+      model: 'auto'
     });
   });
 });

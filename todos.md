@@ -60,6 +60,7 @@
 - [x] 實作 REST adapter
 - [x] 實作 WebSocket adapter stub
 - [x] 實作 Dashboard WebSocket minimal adapter
+- [x] 對齊 Dashboard WebSocket chat payload envelope
 - [x] 實作 timeout / abort controller
 - [x] 實作 token header：`Authorization: Bearer <token>`
 - [x] 錯誤訊息 redaction
@@ -80,6 +81,7 @@
 - [ ] 建立 open tabs summary，預設 off
 - [x] 建立 YouTube transcript adapter stub
 - [x] 建立 YouTube transcript visible/script cue extractor
+- [x] 建立 YouTube transcript content script message handler
 - [x] 建立 payload char limit
 - [x] 建立 truncation flag
 - [x] 建立 context receipt generator
@@ -143,6 +145,7 @@
 ## 9. Diagnostics
 
 - [x] Copy Diagnostics 按鈕
+- [x] Diagnostics copied 狀態自動重置
 - [x] extension version
 - [x] browser family/version
 - [x] gateway origin sanitized
@@ -202,6 +205,7 @@
 - [x] Diagnostics redaction tests
 - [x] Priority regression tests：Authorization header、Bearer redaction、transcript history、runtime dropdowns、agent prompt、content timeout、browser detection、YouTube transcript、Web Crypto hash
 - [x] Adapter cleanup tests：REST request headers、Dashboard WebSocket adapter、YouTube script cues、Bearer token settings guidance
+- [x] Review follow-up tests：Dashboard WebSocket chat envelope、YouTube transcript message handler、active tab message timeout、diagnostics copied reset、send spinner
 - [ ] Playwright extension load test
 - [ ] Manual Chrome test
 - [ ] Manual Edge test

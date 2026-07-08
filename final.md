@@ -12,6 +12,7 @@
 - Diagnostics copy payload 已完成第一個可驗收切片，輸出 extension/browser/gateway origin/mode/state/capabilities/context/redaction counts，排除 token/cookie/page text/selected text/full URL/tab title。
 - Priority regression pass 已完成：Authorization header normalization、quoted Bearer redaction、transcript history accumulation、runtime selector binding、agent-mode system prompt、content extraction timeout、browser family detection、YouTube visible transcript extraction、Web Crypto origin hash。
 - Adapter cleanup pass 已完成：REST headers helper、Dashboard WebSocket minimal adapter、YouTube script transcript cue extraction、8642 API key Bearer token settings guidance。
+- Review follow-up pass 已完成：Dashboard WebSocket chat envelope、YouTube transcript content message handler、active tab message timeout、diagnostics copied reset、Send spinner。
 - 尚未實作 E2E/manual browser QA、Cancel streaming、Retry last message。
 - `npm install` 完成，並已將 Vitest 升級到 4.x；`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 
@@ -81,6 +82,14 @@ npm audit --audit-level=moderate
 - 擴充 `src/content/youtube-transcript.ts`，除 visible transcript segments 外，也可讀取 script JSON transcript cues。
 - 更新 Side Panel token help text，明確指示 local port `8642` 使用 Hermes `API_SERVER_KEY`，以 `Authorization: Bearer` 傳送，並只存 extension settings。
 - 新增/更新 `tests/ws-adapter.test.ts`、`tests/youtube-transcript.test.ts`、`tests/gateway-client.test.ts`、`tests/sidepanel-ui.test.tsx`。
+
+### 2026-07-08 Review follow-up 驗收紀錄
+
+- 核對 `rest-adapter.ts` 與 `ws-adapter.ts`，目前沒有 review 文字中的 placeholder 語法錯誤，並以 `tsc --noEmit` 守住。
+- 更新 `src/gateway/ws-adapter.ts`，`sendTurn()` 改送 `{ type: 'chat', message, model, profile, session_id, context }` envelope。
+- 更新 `src/content/content.ts`，新增 `HERMES_EXTRACT_YOUTUBE_TRANSCRIPT` read-only message handler，並保留 content script top-level import 在測試環境的安全性。
+- 更新 `src/sidepanel/App.tsx`，active tab context message 加 timeout fallback、Diagnostics copied 狀態自動重置、Send streaming button 顯示 spinner。
+- 新增 `tests/content-message-handler.test.ts`、`tests/sidepanel-active-tab.test.ts`、`tests/sidepanel-feedback.test.tsx`，並更新 `tests/ws-adapter.test.ts`。
 
 ## 1. 最終交付物
 

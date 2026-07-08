@@ -3,7 +3,7 @@ export interface YouTubeTranscriptContext {
   text?: string;
 }
 
-interface TranscriptRoot {
+export interface TranscriptRoot {
   querySelectorAll: (selector: string) => Iterable<{ textContent?: string | null }> | ArrayLike<{ textContent?: string | null }>;
 }
 

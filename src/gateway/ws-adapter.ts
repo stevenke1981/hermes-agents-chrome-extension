@@ -55,10 +55,7 @@ export function createHermesDashboardWebSocketClient(
     async *sendTurn(input: HermesTurnInput) {
       const socket = openSocket(createWebSocket, wsUrl, authorization);
       await socket.ready;
-      socket.send({
-        type: 'turn',
-        input
-      });
+      socket.send(buildChatPayload(input));
 
       for await (const event of socket.events()) {
         yield event;
@@ -76,6 +73,17 @@ export function createDashboardWebSocketStub(): never {
     'configuration',
     'Remote dashboard WebSocket mode is not implemented yet; use Local API or Remote API fallback.'
   );
+}
+
+function buildChatPayload(input: HermesTurnInput): Record<string, unknown> {
+  return {
+    type: 'chat',
+    message: input.message,
+    ...(input.model ? { model: input.model } : {}),
+    ...(input.profile ? { profile: input.profile } : {}),
+    ...(input.sessionId ? { session_id: input.sessionId } : {}),
+    ...(input.context ? { context: input.context } : {})
+  };
 }
 
 function buildDashboardWebSocketUrl(gatewayUrl: string): string {

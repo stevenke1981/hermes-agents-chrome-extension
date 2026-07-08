@@ -82,6 +82,9 @@ const emptyProbe: GatewayProbeResult = {
 
 type ToolActivity = Extract<HermesStreamEvent, { type: 'tool' }> | { type: 'status'; name: string; status: string };
 
+export const ACTIVE_TAB_CONTEXT_TIMEOUT_MS = 1_500;
+export const DIAGNOSTICS_COPIED_RESET_MS = 2_500;
+
 export function App() {
   const [settings, setSettings] = useState<GatewaySettings>(DEFAULT_GATEWAY_SETTINGS);
   const [tokenInput, setTokenInput] = useState('');
@@ -289,6 +292,7 @@ export function App() {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
       setDiagnosticsCopied(true);
+      scheduleDiagnosticsCopiedReset(setDiagnosticsCopied);
     }
   }
 
@@ -554,11 +558,31 @@ export function App() {
           onChange={(event) => setMessageText(event.target.value)}
         />
         <button type="submit" disabled={!canSend || !messageText.trim() || isStreaming}>
-          {isStreaming ? 'Streaming...' : 'Send'}
+          <SendButtonContent isStreaming={isStreaming} />
         </button>
       </form>
     </main>
   );
+}
+
+export function SendButtonContent({ isStreaming }: { isStreaming: boolean }) {
+  if (!isStreaming) {
+    return <>Send</>;
+  }
+
+  return (
+    <>
+      <span className="spinner send-spinner" aria-hidden="true" />
+      Streaming...
+    </>
+  );
+}
+
+export function scheduleDiagnosticsCopiedReset(
+  setCopied: (value: boolean) => void,
+  delayMs = DIAGNOSTICS_COPIED_RESET_MS
+): ReturnType<typeof setTimeout> {
+  return globalThis.setTimeout(() => setCopied(false), delayMs);
 }
 
 function getNavigatorBrands(): Array<{ brand: string; version?: string }> {
@@ -568,25 +592,59 @@ function getNavigatorBrands(): Array<{ brand: string; version?: string }> {
   return navigatorWithHints.userAgentData?.brands ?? [];
 }
 
-async function extractContextFromActiveTab(scope: ContextScope): Promise<
-  | {
-      context: BrowserContextV1;
-      receipt: BrowserContextReceipt;
-    }
-  | undefined
-> {
-  if (typeof chrome === 'undefined' || !chrome.tabs?.query) {
+interface ActiveTabMessageApi {
+  query: (queryInfo: chrome.tabs.QueryInfo) => Promise<Array<{ id?: number }>>;
+  sendMessage: (tabId: number, message: unknown) => Promise<ActiveTabContextResponse>;
+}
+
+type ActiveTabContextResponse = {
+  context: BrowserContextV1;
+  receipt: BrowserContextReceipt;
+};
+
+interface ActiveTabExtractionOptions {
+  tabs?: ActiveTabMessageApi;
+  timeoutMs?: number;
+}
+
+export async function extractContextFromActiveTab(
+  scope: ContextScope,
+  options: ActiveTabExtractionOptions = {}
+): Promise<ActiveTabContextResponse | undefined> {
+  const tabs = options.tabs ?? (typeof chrome === 'undefined' ? undefined : chrome.tabs);
+  if (!tabs?.query) {
     return undefined;
   }
 
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await tabs.query({ active: true, currentWindow: true });
   if (tab.id === undefined) {
     return undefined;
   }
 
-  return chrome.tabs.sendMessage(tab.id, {
-    type: 'HERMES_EXTRACT_CONTEXT',
-    scope
-  });
+  return withTimeout(
+    tabs.sendMessage(tab.id, {
+      type: 'HERMES_EXTRACT_CONTEXT',
+      scope
+    }),
+    options.timeoutMs ?? ACTIVE_TAB_CONTEXT_TIMEOUT_MS
+  ).catch(() => undefined);
 }
 
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number
+): Promise<T | undefined> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<undefined>((resolve) => {
+        timeoutId = globalThis.setTimeout(() => resolve(undefined), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timeoutId) {
+      globalThis.clearTimeout(timeoutId);
+    }
+  }
+}
