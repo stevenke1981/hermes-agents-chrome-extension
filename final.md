@@ -5,7 +5,12 @@
 - 已完成 project startup 與 Phase 1 MV3 scaffold：`package.json`、TypeScript/Vite/ESLint 設定、`manifest.json`、background/content/side panel skeleton、placeholder icons、manifest/security check scripts。
 - `dist/manifest.json` 已由 build 產生於 `dist/` 根目錄；目前可作為 load unpacked skeleton 的基礎。
 - v0.1 禁止權限仍未加入：沒有 `debugger`、`nativeMessaging`、`cookies`、`history`、`downloads`、`bookmarks`、`webNavigation`、`unlimitedStorage`。
-- 尚未實作 Hermes Gateway、context extraction、restricted page classifier、redaction、chat streaming、diagnostics UI、E2E/manual browser QA。
+- Phase 2 Hermes Gateway connection 已完成第一個可驗收切片：REST adapter、health/models/sessions/skills/profiles/capabilities probe、token header、timeout、gateway origin sanitizer、redacted error、ConnectedWithWarning、remote HTTP warning、Side Panel connection settings。
+- Phase 3 Browser Context Protocol 與 context extraction 已完成第一個可驗收切片：`chat_only` protection、active tab safe metadata、selected text、page title/meta/headings/paragraphs/links/buttons/form labels、payload char limit、truncation receipt、untrusted wrapper、YouTube transcript disabled stub。
+- Phase 4 Side Panel UI 已完成工作台骨架：conversation preview、Tool activity strip、What Hermes saw、Diagnostics section、Dev Handoff clipboard-only quick actions。
+- Restricted page classifier、secret redaction pipeline、chat streaming 已完成第一個可驗收切片，並整合進 content extraction / Side Panel send flow。
+- Diagnostics copy payload 已完成第一個可驗收切片，輸出 extension/browser/gateway origin/mode/state/capabilities/context/redaction counts，排除 token/cookie/page text/selected text/full URL/tab title。
+- 尚未實作 E2E/manual browser QA、Cancel streaming、Retry last message、Local message history per tab/session。
 - `npm install` 完成，並已將 Vitest 升級到 4.x；`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 
 ### 最新驗證
@@ -18,6 +23,41 @@ npm run check:security
 npm run lint
 npm audit --audit-level=moderate
 ```
+
+### 2026-07-08 Phase 2 驗收紀錄
+
+- 新增 `src/gateway/hermes-client.ts`、`src/gateway/rest-adapter.ts`、`src/gateway/ws-adapter.ts`。
+- 擴充 `src/shared/types.ts` 與 `src/shared/storage.ts`，讓 gateway settings 可由 side panel 儲存、載入與清除 token。
+- 更新 `src/sidepanel/App.tsx` 與 `src/sidepanel/styles.css`，提供 mode / URL / token / test / save / clear、runtime selectors、warning/error 狀態。
+- 新增 `tests/gateway-client.test.ts`，覆蓋 Phase 2 adapter 與安全錯誤處理。
+- 驗收結果：`npm run verify` 通過（2 test files、8 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
+
+### 2026-07-08 Phase 3 / Phase 4 驗收紀錄
+
+- 新增 `src/shared/browser-context-protocol.ts`，提供 `BrowserContextV1` builder、untrusted wrapper、safe receipt。
+- 新增 `src/content/extractors.ts` 與 `src/content/youtube-transcript.ts`，提供 read-only page extraction 與 transcript disabled stub。
+- 更新 `src/content/content.ts`，新增 `HERMES_EXTRACT_CONTEXT` message handler，不加入 click/type/submit 行為。
+- 更新 `src/sidepanel/App.tsx` 與 `src/sidepanel/styles.css`，補齊 Phase 4 workspace UI 骨架。
+- 新增 `tests/browser-context-protocol.test.ts`、`tests/extractors.test.ts`、`tests/youtube-transcript.test.ts`、`tests/sidepanel-ui.test.tsx`。
+- 驗收結果：`npm run verify` 通過（6 test files、18 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
+
+### 2026-07-08 Restricted / Redaction / Streaming 驗收紀錄
+
+- 新增 `src/content/restricted-pages.ts`，阻擋 browser internals、extension pages、local files、password/banking/crypto/payment/health/government tax/admin credentials URL patterns。
+- 新增 `src/content/redaction.ts`，支援 Bearer/API key/JWT/private key/secret assignment/URL query/cookie-like redaction，並輸出 `RedactionEvent` counts。
+- 新增 `src/gateway/stream-parser.ts`，支援 delta/tool/done/warning/error stream event。
+- 更新 `src/gateway/rest-adapter.ts`，新增 `sendTurn()` streaming REST adapter。
+- 更新 `src/sidepanel/App.tsx`，送出訊息時可抽取 active tab context、套用 untrusted wrapper、stream Hermes 回覆並顯示 tool activity。
+- 新增 `tests/restricted-pages.test.ts`、`tests/redaction.test.ts`、`tests/stream-parser.test.ts`、`tests/chat-streaming.test.ts`。
+- 驗收結果：`npm run verify` 通過（10 test files、58 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
+- 壓縮結果：`npm run package` 通過，產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`（artifact 目錄依 `.gitignore` 不納入 commit）。
+
+### 2026-07-08 Diagnostics 驗收紀錄
+
+- 新增 `src/shared/diagnostics.ts`，建立安全 diagnostics payload。
+- 更新 `src/sidepanel/App.tsx`，接上 Copy Diagnostics button。
+- 新增 `tests/diagnostics.test.ts`，確認 diagnostics 不含 token/cookie/page text/selected text/full tab URL/tab title，且 gateway 只保留 origin。
+- 驗收結果：`npm run verify` 通過（11 test files、59 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities，`npm run package` 產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`。
 
 ## 1. 最終交付物
 

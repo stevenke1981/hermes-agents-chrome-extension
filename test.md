@@ -49,21 +49,21 @@
 
 必測案例：
 
-- [ ] `Authorization: Bearer abc123` → `Authorization: Bearer [REDACTED_BEARER]`
-- [ ] `OPENAI_API_KEY=sk-...` → `[REDACTED_SECRET_ASSIGNMENT]`
-- [ ] GitHub token：`ghp_...` redacted
-- [ ] Slack token：`xoxb-...` redacted
-- [ ] JWT：`aaa.bbb.ccc` redacted
-- [ ] PEM private key block redacted
-- [ ] URL query：`?token=abc&x=1` redacted
-- [ ] Cookie-like：`session=abc` redacted
-- [ ] 多個 secret count 正確
+- [x] `Authorization: Bearer abc123` → `Authorization: Bearer [REDACTED_BEARER]`
+- [x] `OPENAI_API_KEY=sk-...` → `[REDACTED_SECRET_ASSIGNMENT]`
+- [x] GitHub token：`ghp_...` redacted
+- [x] Slack token：`xoxb-...` redacted
+- [x] JWT：`aaa.bbb.ccc` redacted
+- [x] PEM private key block redacted
+- [x] URL query：`?token=abc&x=1` redacted
+- [x] Cookie-like：`session=abc` redacted
+- [x] 多個 secret count 正確
 - [ ] 非 secret 正常文字不誤殺過多
 
 驗收：
 
-- 至少 20 個 redaction cases。
-- 每個 RedactionEvent 有 type、count、location。
+- [x] 至少 20 個 redaction cases。
+- [x] 每個 RedactionEvent 有 type、count、location。
 
 ### 4.2 Restricted page tests
 
@@ -88,9 +88,9 @@ https://vault.example.com/passwords
 
 驗收：
 
-- `isRestrictedPage(url)` 回傳 blocked。
-- blocked result 有 category。
-- 不回傳 full URL 到 prompt receipt，只回傳 category 或 origin hash。
+- [x] `isRestrictedPage(url)` 回傳 blocked。
+- [x] blocked result 有 category。
+- [x] 不回傳 full URL 到 prompt receipt，只回傳 category 或 origin hash。
 
 ### 4.3 Browser Context Protocol tests
 
@@ -98,13 +98,29 @@ https://vault.example.com/passwords
 
 必測：
 
-- [ ] `chat_only` 不包含 activeTab/page/openTabs。
-- [ ] `follow_active_tab` 包含 activeTab + page。
-- [ ] payload char limit 生效。
-- [ ] truncation flag 正確。
-- [ ] untrusted wrapper 包住 context。
-- [ ] protocol id 固定：`hermes.browser.context.v1`。
-- [ ] createdAt 是 ISO string。
+- [x] `chat_only` 不包含 activeTab/page/openTabs。
+- [x] `follow_active_tab` 包含 activeTab + page。
+- [x] payload char limit 生效。
+- [x] truncation flag 正確。
+- [x] untrusted wrapper 包住 context。
+- [x] protocol id 固定：`hermes.browser.context.v1`。
+- [x] createdAt 是 ISO string。
+
+### 4.5 Phase 3 extractor tests（2026-07-08）
+
+檔案：`tests/extractors.test.ts`、`tests/youtube-transcript.test.ts`
+
+- [x] page title / meta description extraction。
+- [x] headings / paragraphs / links / buttons / form labels extraction。
+- [x] noisy repeated page output limits。
+- [x] YouTube transcript adapter stub 預設 disabled 且不合成 transcript 文字。
+
+### 4.6 Phase 4 side panel workspace tests（2026-07-08）
+
+檔案：`tests/sidepanel-ui.test.tsx`
+
+- [x] Side Panel render 包含 connection、context、agent mode、conversation、Tool activity、What Hermes saw、Diagnostics。
+- [x] Dev Handoff quick actions 僅提供 clipboard copy action，不提供 direct filesystem write。
 
 ### 4.4 Diagnostics tests
 
@@ -112,14 +128,14 @@ https://vault.example.com/passwords
 
 必測：
 
-- [ ] diagnostics 不含 token。
-- [ ] diagnostics 不含 bearer。
-- [ ] diagnostics 不含 cookie。
-- [ ] diagnostics 不含 full URL。
-- [ ] diagnostics 不含 page text。
-- [ ] diagnostics 不含 selected text。
-- [ ] diagnostics 有 extension version。
-- [ ] diagnostics 有 gateway origin sanitized。
+- [x] diagnostics 不含 token。
+- [x] diagnostics 不含 bearer。
+- [x] diagnostics 不含 cookie。
+- [x] diagnostics 不含 full URL。
+- [x] diagnostics 不含 page text。
+- [x] diagnostics 不含 selected text。
+- [x] diagnostics 有 extension version。
+- [x] diagnostics 有 gateway origin sanitized。
 
 ## 5. Integration Tests
 
@@ -148,6 +164,25 @@ GET /api/ws
 - [ ] capabilities 控制 UI feature flags。
 - [ ] chat streaming 能逐 chunk 顯示。
 - [ ] runtime traceback → ConnectedWithWarning。
+
+### 5.2 Phase 2 adapter unit coverage（2026-07-08）
+
+檔案：`tests/gateway-client.test.ts`
+
+- [x] `health()` 呼叫 `/health` 並帶 `Authorization: Bearer <token>`。
+- [x] list endpoint 可正規化 `{ data: [...] }` 與 string list。
+- [x] token-shaped error text 會 redacted。
+- [x] optional catalog endpoint 失敗時回傳 `connected_with_warning`。
+- [x] remote HTTP gateway 顯示安全警告。
+
+### 5.3 Chat streaming adapter coverage（2026-07-08）
+
+檔案：`tests/stream-parser.test.ts`、`tests/chat-streaming.test.ts`
+
+- [x] OpenAI-compatible stream delta chunk 解析。
+- [x] tool activity stream chunk 解析。
+- [x] `[DONE]` 與 keepalive line 處理。
+- [x] `sendTurn()` POST `/v1/chat/completions`，帶 token 並 yield delta/done events。
 
 ## 6. E2E Tests
 

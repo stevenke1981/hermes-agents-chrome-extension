@@ -33,94 +33,94 @@
 
 ## 2. Side Panel 基礎 UI
 
-- [ ] Header：logo、extension name、status chip
-- [ ] Connection panel：gateway URL、mode、token field、test/save/clear
-- [ ] Model selector
-- [ ] Profile selector
-- [ ] Session selector
-- [ ] Agent mode picker
-- [ ] Context scope picker
-- [ ] Composer
-- [ ] Message list
+- [x] Header：logo、extension name、status chip
+- [x] Connection panel：gateway URL、mode、token field、test/save/clear
+- [x] Model selector
+- [x] Profile selector
+- [x] Session selector
+- [x] Agent mode picker
+- [x] Context scope picker
+- [x] Composer
+- [x] Message list
 - [ ] Settings drawer
 - [ ] Diagnostics drawer
-- [ ] Toast / error banner
+- [x] Toast / error banner
 - [ ] Light/dark theme
 - [ ] Keyboard navigation
 
 ## 3. Gateway Client
 
-- [ ] 建立 `HermesGatewayClient` interface
-- [ ] 實作 `health()`
-- [ ] 實作 `listModels()`
-- [ ] 實作 `listSessions()`
-- [ ] 實作 `listSkills()`
-- [ ] 實作 `listProfiles()`
-- [ ] 實作 `listCapabilities()`
-- [ ] 實作 REST adapter
-- [ ] 實作 WebSocket adapter stub
-- [ ] 實作 timeout / abort controller
-- [ ] 實作 token header：`Authorization: Bearer <token>`
-- [ ] 錯誤訊息 redaction
-- [ ] Gateway origin sanitizer
-- [ ] ConnectedWithWarning 狀態
+- [x] 建立 `HermesGatewayClient` interface
+- [x] 實作 `health()`
+- [x] 實作 `listModels()`
+- [x] 實作 `listSessions()`
+- [x] 實作 `listSkills()`
+- [x] 實作 `listProfiles()`
+- [x] 實作 `listCapabilities()`
+- [x] 實作 REST adapter
+- [x] 實作 WebSocket adapter stub
+- [x] 實作 timeout / abort controller
+- [x] 實作 token header：`Authorization: Bearer <token>`
+- [x] 錯誤訊息 redaction
+- [x] Gateway origin sanitizer
+- [x] ConnectedWithWarning 狀態
 
 ## 4. Context Extraction
 
-- [ ] 建立 `BrowserContextV1` types
-- [ ] 建立 active tab metadata extractor
-- [ ] 建立 selected text extractor
-- [ ] 建立 page title/meta extractor
-- [ ] 建立 headings extractor
-- [ ] 建立 paragraph/text extractor
-- [ ] 建立 links extractor
-- [ ] 建立 buttons extractor
-- [ ] 建立 form labels extractor
+- [x] 建立 `BrowserContextV1` types
+- [x] 建立 active tab metadata extractor
+- [x] 建立 selected text extractor
+- [x] 建立 page title/meta extractor
+- [x] 建立 headings extractor
+- [x] 建立 paragraph/text extractor
+- [x] 建立 links extractor
+- [x] 建立 buttons extractor
+- [x] 建立 form labels extractor
 - [ ] 建立 open tabs summary，預設 off
-- [ ] 建立 YouTube transcript adapter stub
-- [ ] 建立 payload char limit
-- [ ] 建立 truncation flag
-- [ ] 建立 context receipt generator
+- [x] 建立 YouTube transcript adapter stub
+- [x] 建立 payload char limit
+- [x] 建立 truncation flag
+- [x] 建立 context receipt generator
 
 ## 5. Restricted Pages
 
-- [ ] 阻擋 `chrome://`
-- [ ] 阻擋 `edge://`
-- [ ] 阻擋 `about:`
-- [ ] 阻擋 `devtools://`
-- [ ] 阻擋 extension pages
-- [ ] 阻擋 `file://`
-- [ ] 阻擋 password manager/vault URL patterns
-- [ ] 阻擋 banking URL patterns
-- [ ] 阻擋 crypto wallet/exchange URL patterns
-- [ ] 阻擋 checkout/payment URL patterns
-- [ ] 阻擋 health/medical URL patterns
-- [ ] 阻擋 government tax/account URL patterns
-- [ ] UI 顯示 blocked sensitive page
-- [ ] blocked 時 What Hermes saw 不含 title / full URL / selected text / page content
+- [x] 阻擋 `chrome://`
+- [x] 阻擋 `edge://`
+- [x] 阻擋 `about:`
+- [x] 阻擋 `devtools://`
+- [x] 阻擋 extension pages
+- [x] 阻擋 `file://`
+- [x] 阻擋 password manager/vault URL patterns
+- [x] 阻擋 banking URL patterns
+- [x] 阻擋 crypto wallet/exchange URL patterns
+- [x] 阻擋 checkout/payment URL patterns
+- [x] 阻擋 health/medical URL patterns
+- [x] 阻擋 government tax/account URL patterns
+- [x] UI 顯示 blocked sensitive page
+- [x] blocked 時 What Hermes saw 不含 title / full URL / selected text / page content
 
 ## 6. Redaction
 
-- [ ] Bearer token redaction
-- [ ] API key prefix redaction
-- [ ] JWT redaction
-- [ ] PEM private key redaction
-- [ ] `.env` secret assignment redaction
-- [ ] URL query secret redaction
-- [ ] Cookie-like text redaction
-- [ ] Slack token redaction
-- [ ] GitHub token redaction
-- [ ] RedactionEvent counts
-- [ ] Redaction unit tests ≥ 20 cases
+- [x] Bearer token redaction
+- [x] API key prefix redaction
+- [x] JWT redaction
+- [x] PEM private key redaction
+- [x] `.env` secret assignment redaction
+- [x] URL query secret redaction
+- [x] Cookie-like text redaction
+- [x] Slack token redaction
+- [x] GitHub token redaction
+- [x] RedactionEvent counts
+- [x] Redaction unit tests ≥ 20 cases
 
 ## 7. Chat / Streaming
 
-- [ ] Message model
-- [ ] Send turn input builder
+- [x] Message model
+- [x] Send turn input builder
 - [ ] Agent mode prompt prefix
-- [ ] Untrusted context wrapper
-- [ ] Hermes stream parser
-- [ ] Tool activity event normalizer
+- [x] Untrusted context wrapper
+- [x] Hermes stream parser
+- [x] Tool activity event normalizer
 - [ ] Cancel streaming
 - [ ] Retry last message
 - [ ] Local message history per tab/session
@@ -128,27 +128,27 @@
 
 ## 8. What Hermes Saw
 
-- [ ] 顯示 context scope
-- [ ] 顯示 active tab origin 或 blocked category
-- [ ] 顯示 selected text 是否包含
-- [ ] 顯示 page text char count
+- [x] 顯示 context scope
+- [x] 顯示 active tab origin 或 blocked category
+- [x] 顯示 selected text 是否包含
+- [x] 顯示 page text char count
 - [ ] 顯示 open tabs sent count
 - [ ] 顯示 attachments count
-- [ ] 顯示 redaction count
+- [x] 顯示 redaction count
 - [ ] 顯示 truncation status
-- [ ] blocked 時顯示 no browser content sent
+- [x] blocked 時顯示 no browser content sent
 
 ## 9. Diagnostics
 
-- [ ] Copy Diagnostics 按鈕
-- [ ] extension version
-- [ ] browser family/version
-- [ ] gateway origin sanitized
-- [ ] mode / state / capabilities
-- [ ] last visible error category
-- [ ] redaction counts
-- [ ] 確認不含 token/cookie/page text/selected text/full tab URL/tab title
-- [ ] diagnostics tests
+- [x] Copy Diagnostics 按鈕
+- [x] extension version
+- [x] browser family/version
+- [x] gateway origin sanitized
+- [x] mode / state / capabilities
+- [x] last visible error category
+- [x] redaction counts
+- [x] 確認不含 token/cookie/page text/selected text/full tab URL/tab title
+- [x] diagnostics tests
 
 ## 10. Documentation
 
@@ -191,6 +191,13 @@
 - [x] `npm run check:manifest`
 - [x] `npm run verify`
 - [x] `npm run build`
+- [x] Phase 3 Browser Context Protocol unit tests
+- [x] Phase 3 extractor unit tests
+- [x] Phase 4 Side Panel workspace render tests
+- [x] Restricted page classifier tests
+- [x] Redaction unit tests ≥ 20 cases
+- [x] Chat streaming adapter tests
+- [x] Diagnostics redaction tests
 - [ ] Playwright extension load test
 - [ ] Manual Chrome test
 - [ ] Manual Edge test
@@ -200,7 +207,7 @@
 ## 14. Release
 
 - [ ] `dist/` 檢查
-- [ ] `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`
+- [x] `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`
 - [ ] release notes
 - [ ] screenshots
 - [ ] known issues
