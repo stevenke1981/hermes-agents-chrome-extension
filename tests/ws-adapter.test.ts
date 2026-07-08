@@ -56,6 +56,59 @@ describe('dashboard WebSocket adapter', () => {
       model: 'auto'
     });
   });
+
+  it('requests catalog resources over the dashboard WebSocket', async () => {
+    const sockets: FakeWebSocket[] = [];
+    const client = createHermesDashboardWebSocketClient(settings, {
+      createWebSocket: () => {
+        const socket = new FakeWebSocket();
+        sockets.push(socket);
+        return socket;
+      }
+    });
+
+    const modelsPromise = client.listModels();
+    sockets[0].open();
+    sockets[0].message({
+      type: 'catalog_result',
+      resource: 'models',
+      data: [{ id: 'model-a', name: 'Model A' }, 'model-b']
+    });
+
+    await expect(modelsPromise).resolves.toEqual([
+      { id: 'model-a', name: 'Model A' },
+      { id: 'model-b' }
+    ]);
+    expect(sockets[0].sent.map((item) => JSON.parse(item)).at(-1)).toEqual({
+      type: 'catalog',
+      resource: 'models'
+    });
+  });
+
+  it('normalizes dashboard WebSocket capabilities catalog responses', async () => {
+    const socket = new FakeWebSocket();
+    const client = createHermesDashboardWebSocketClient(settings, {
+      createWebSocket: () => socket
+    });
+
+    const capabilitiesPromise = client.listCapabilities();
+    socket.open();
+    socket.message({
+      type: 'capabilities',
+      flags: {
+        models: true,
+        sessions: false
+      }
+    });
+
+    await expect(capabilitiesPromise).resolves.toMatchObject({
+      flags: {
+        dashboard_ws: true,
+        models: true,
+        sessions: false
+      }
+    });
+  });
 });
 
 async function collectAsync<T>(source: AsyncIterable<T>): Promise<T[]> {

@@ -113,6 +113,16 @@ npm audit --audit-level=moderate
 - 更新 `scripts/manual-browser-qa.mjs`，Edge / Brave smoke QA 會輸出 safe UI screenshots 到 `docs/screenshots/`。
 - 驗證結果：`npm run verify` 通過（17 test files、88 tests、`tsc --noEmit`、manifest check、security sink check）；`npm run build` 通過；`npm run lint` 通過；`npm audit --audit-level=moderate` 回報 0 vulnerabilities；`npm run package` 通過並產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`；zip 解壓後 `manifest.json` version 為 `0.1.0`；`npm run qa:manual:browsers` 通過 Edge / Brave 並保留 Chrome blocked 為已知限制。
 
+### 2026-07-08 UI / WebSocket follow-up 驗收紀錄
+
+- 核對 Agent Mode 按鈕，目前 selected class / `aria-pressed` 已綁定 `agentMode` state，並新增 regression helper test 防止退回 hard-coded `general_chat`。
+- 核對 `redactText()` 在 `App.tsx` 仍有使用：open tabs summary 會用它 redacted tab title。
+- 新增 content script unavailable UI fallback：當非 Chat only scope 無法抽取 context 時，Context bar 顯示 `chrome://` 等 browser internal pages 無法載入 content script，並說明已使用 chat-only fallback。
+- 核對 Diagnostics copied auto reset 與 Send spinner，現有 helper tests 持續覆蓋。
+- 新增 `src/gateway/client-factory.ts`，Side Panel 依 gateway mode 建立 REST 或 Dashboard WebSocket client；`remote_dashboard_ws` 不再固定使用 REST send client。
+- 擴充 `src/gateway/ws-adapter.ts` catalog methods：`listModels()` / `listSessions()` / `listSkills()` / `listProfiles()` / `listCapabilities()` 會透過 dashboard WebSocket 送出 `{ type: 'catalog', resource }` request，並正規化常見 catalog response shapes。
+- 驗證結果：`npm run verify` 通過（17 test files、92 tests、`tsc --noEmit`、manifest check、security sink check）；`npm run lint` 通過；`npm run build` 通過；`npm run package` 通過並重新產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`；`npm run qa:manual:browsers` 通過 Edge / Brave，Chrome 維持 Google Chrome 137+ command-line `--load-extension` blocked 的已知限制。
+
 ## 1. 最終交付物
 
 v0.1 Alpha 應交付：

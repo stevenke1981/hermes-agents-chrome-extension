@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { redactText } from '../content/redaction';
 import { isRestrictedPage } from '../content/restricted-pages';
-import { createHermesRestClient, probeGateway, redactSensitiveText } from '../gateway/rest-adapter';
+import { createHermesGatewayClient, probeHermesGateway } from '../gateway/client-factory';
+import { redactSensitiveText } from '../gateway/rest-adapter';
 import { createContextReceipt, wrapUntrustedBrowserContext } from '../shared/browser-context-protocol';
 import { AGENT_MODES, CONTEXT_SCOPES, EXTENSION_NAME, EXTENSION_VERSION } from '../shared/constants';
 import { createDiagnosticsPayload, detectBrowserFamily } from '../shared/diagnostics';
@@ -88,6 +89,12 @@ type ToolActivity = Extract<HermesStreamEvent, { type: 'tool' }> | { type: 'stat
 
 export const ACTIVE_TAB_CONTEXT_TIMEOUT_MS = 1_500;
 export const DIAGNOSTICS_COPIED_RESET_MS = 2_500;
+export const CONTEXT_EXTRACTION_UNAVAILABLE_MESSAGE =
+  'Unable to extract browser context on this page. Browser internal pages such as chrome:// are unavailable to content scripts; chat-only fallback was used.';
+
+export function isAgentModeSelected(mode: AgentMode, currentMode: AgentMode): boolean {
+  return mode === currentMode;
+}
 
 export function App() {
   const activeStreamController = useRef<AbortController | undefined>(undefined);
@@ -98,6 +105,7 @@ export function App() {
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [probeResult, setProbeResult] = useState<GatewayProbeResult>(emptyProbe);
   const [activeError, setActiveError] = useState<string | undefined>();
+  const [contextExtractionWarning, setContextExtractionWarning] = useState<string | undefined>();
   const [diagnosticsCopied, setDiagnosticsCopied] = useState(false);
   const [contextScope, setContextScope] = useState<ContextScope>('chat_only');
   const [includeOpenTabs, setIncludeOpenTabs] = useState(false);
@@ -183,7 +191,7 @@ export function App() {
     setConnectionState('connecting');
     setActiveError(undefined);
 
-    const result = await probeGateway(settingsToTest);
+    const result = await probeHermesGateway(settingsToTest);
     setProbeResult(result);
     setConnectionState(result.state);
     setActiveError(result.error);
@@ -205,6 +213,7 @@ export function App() {
     setSettings((current) => ({ ...current, ...partial }));
     setConnectionState('disconnected');
     setActiveError(undefined);
+    setContextExtractionWarning(undefined);
   }
 
   async function handleSendTurn() {
@@ -254,6 +263,7 @@ export function App() {
     const controller = new AbortController();
     activeStreamController.current = controller;
     setActiveError(undefined);
+    setContextExtractionWarning(undefined);
     setIsStreaming(true);
     setTranscript((current) => appendPendingTurn(current, message));
 
@@ -265,6 +275,9 @@ export function App() {
         setLastReceipt(context.receipt);
         setToolActivity([{ type: 'status', name: 'browser context', status: 'attached' }]);
       } else {
+        if (contextScope !== 'chat_only') {
+          setContextExtractionWarning(CONTEXT_EXTRACTION_UNAVAILABLE_MESSAGE);
+        }
         setLastReceipt({
           scope: 'chat_only',
           browserContentSent: false,
@@ -278,7 +291,7 @@ export function App() {
         setToolActivity([{ type: 'status', name: 'browser context', status: 'chat only' }]);
       }
 
-      const client = createHermesRestClient(settings);
+      const client = createHermesGatewayClient(settings);
       const runtime = resolveSelectedRuntime({
         selectedModelId,
         selectedProfileId,
@@ -515,6 +528,7 @@ export function App() {
             ? `Blocked sensitive page · ${lastReceipt.blockedCategory}`
             : `${scopeLabels[contextScope]} · ${lastReceipt.browserContentSent ? `${lastReceipt.pageTextChars} chars` : 'no browser content sent'}`}
         </div>
+        {contextExtractionWarning ? <p className="warning-banner">{contextExtractionWarning}</p> : null}
       </section>
 
       <section className="agent-modes" aria-label="Agent mode">
@@ -522,8 +536,8 @@ export function App() {
           <button
             key={mode}
             type="button"
-            className={mode === agentMode ? 'selected' : ''}
-            aria-pressed={mode === agentMode}
+            className={isAgentModeSelected(mode, agentMode) ? 'selected' : ''}
+            aria-pressed={isAgentModeSelected(mode, agentMode)}
             onClick={() => setAgentMode(mode)}
           >
             {agentLabels[mode]}

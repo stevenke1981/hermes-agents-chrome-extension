@@ -150,6 +150,9 @@ https://vault.example.com/passwords
 - [x] `selected_text_only` 不送 page title/page body。
 - [x] Timeout fallback 會 redact active tab/page title。
 - [x] Cancel streaming、Retry last message、Clear conversation 有 regression coverage。
+- [x] Agent Mode selected class 由 `agentMode` state 決定，避免回到 hard-coded `general_chat`。
+- [x] Content script unavailable fallback 有 `chrome://` 等 browser internal pages 的使用者可見提示。
+- [x] Dashboard WebSocket catalog methods 會送出 catalog request，並正規化 models / capabilities response。
 
 ### 4.4 Diagnostics tests
 
