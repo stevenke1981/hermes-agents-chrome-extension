@@ -1,5 +1,7 @@
 import type {
   CapabilityInfo,
+  HermesStreamEvent,
+  HermesTurnInput,
   HealthStatus,
   ModelInfo,
   ProfileInfo,
@@ -14,4 +16,5 @@ export interface HermesGatewayClient {
   listSkills(): Promise<SkillInfo[]>;
   listProfiles(): Promise<ProfileInfo[]>;
   listCapabilities(): Promise<CapabilityInfo>;
+  sendTurn(input: HermesTurnInput): AsyncIterable<HermesStreamEvent>;
 }

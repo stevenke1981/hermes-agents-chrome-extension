@@ -1,9 +1,12 @@
 import type { HermesGatewayClient } from './hermes-client';
+import { parseHermesStreamChunk } from './stream-parser';
 import type {
   CapabilityInfo,
   GatewayCatalog,
   GatewayProbeResult,
   GatewaySettings,
+  HermesStreamEvent,
+  HermesTurnInput,
   HealthStatus,
   ModelInfo,
   ProfileInfo,
@@ -19,7 +22,8 @@ const ENDPOINTS = {
   sessions: '/api/sessions',
   skills: '/v1/skills',
   profiles: '/v1/profiles',
-  capabilities: '/v1/capabilities'
+  capabilities: '/v1/capabilities',
+  chat: '/v1/chat/completions'
 } as const;
 
 type JsonRecord = Record<string, unknown>;
@@ -92,14 +96,26 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
   const baseUrl = normalizeGatewayUrl(settings.gatewayUrl);
 
   async function requestJson<T>(path: string): Promise<T> {
+    const response = await request(path, { method: 'GET' });
+    try {
+      return (await response.json()) as T;
+    } catch (error) {
+      throw new HermesGatewayError('parse', `Hermes Gateway returned invalid JSON for ${path}.`, {
+        cause: error
+      });
+    }
+  }
+
+  async function request(path: string, init: RequestInit): Promise<Response> {
     const controller = new AbortController();
     const timeout = globalThis.setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
     try {
       const response = await fetch(new URL(path, `${baseUrl}/`), {
-        method: 'GET',
+        ...init,
         headers: {
           Accept: 'application/json',
+          ...init.headers,
           ...(settings.token ? { Authorization: `Bearer ${settings.token}` } : {})
         },
         signal: controller.signal
@@ -113,13 +129,7 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
         );
       }
 
-      try {
-        return (await response.json()) as T;
-      } catch (error) {
-        throw new HermesGatewayError('parse', `Hermes Gateway returned invalid JSON for ${path}.`, {
-          cause: error
-        });
-      }
+      return response;
     } catch (error) {
       if (error instanceof HermesGatewayError) {
         throw error;
@@ -157,6 +167,23 @@ export function createHermesRestClient(settings: GatewaySettings): HermesGateway
     },
     async listCapabilities() {
       return normalizeCapabilities(await requestJson<unknown>(ENDPOINTS.capabilities));
+    },
+    async *sendTurn(input: HermesTurnInput) {
+      const response = await request(ENDPOINTS.chat, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: input.model,
+          messages: buildMessages(input),
+          stream: true,
+          session_id: input.sessionId,
+          profile: input.profile
+        })
+      });
+
+      yield* readStreamEvents(response);
     }
   };
 }
@@ -316,5 +343,50 @@ function safeGatewayOrigin(settings: GatewaySettings): string | undefined {
     return getGatewayOrigin(settings);
   } catch {
     return undefined;
+  }
+}
+
+function buildMessages(input: HermesTurnInput) {
+  const messages = [];
+  if (input.context) {
+    messages.push({ role: 'system', content: input.context });
+  }
+  messages.push({ role: 'user', content: input.message });
+  return messages;
+}
+
+async function* readStreamEvents(response: Response): AsyncIterable<HermesStreamEvent> {
+  if (!response.body) {
+    yield { type: 'done' };
+    return;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split(/\r?\n/);
+    buffer = lines.pop() ?? '';
+
+    for (const line of lines) {
+      const event = parseHermesStreamChunk(line);
+      if (event) {
+        yield event;
+      }
+    }
+  }
+
+  if (buffer) {
+    const event = parseHermesStreamChunk(buffer);
+    if (event) {
+      yield event;
+    }
   }
 }

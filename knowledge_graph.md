@@ -14,6 +14,10 @@
 - `Content Extractors`：read-only 擷取 title、meta、headings、paragraphs、links、buttons、form labels。
 - `YouTube Transcript Stub`：Phase 3 disabled adapter，避免未實作時合成 transcript 內容。
 - `Agent Workspace UI`：Phase 4 side panel 工作台骨架，含 Tool activity、What Hermes saw、Diagnostics、Dev Handoff quick actions。
+- `Restricted Page Classifier`：阻擋 browser internals、extension/local files、password、banking、crypto、payment、health、tax、admin credentials。
+- `Secret Redaction Pipeline`：對 page text、selected text、safe URL/title 做 token/private key/JWT/cookie-like redaction。
+- `Hermes Stream Parser`：解析 REST streaming delta/tool/done/error events。
+- `Side Panel Send Flow`：組合 browser context、untrusted wrapper、`sendTurn()` streaming 與 transcript/tool activity UI。
 
 ## 關係
 
@@ -30,6 +34,10 @@
 - `Browser Context Protocol` → wraps_as → `Untrusted Browser Context`
 - `Agent Workspace UI` → displays → `What Hermes Saw Receipt`
 - `Agent Workspace UI` → exposes → `Dev Handoff Clipboard Actions`
+- `Restricted Page Classifier` → blocks → `Content Extractors`
+- `Secret Redaction Pipeline` → sanitizes → `Browser Context Protocol`
+- `Hermes Stream Parser` → feeds → `Side Panel Send Flow`
+- `Side Panel Send Flow` → calls → `REST Adapter`
 
 ## 變更歷史
 
@@ -37,3 +45,4 @@
 |---|---|---|---|
 | v0.1 | 2026-07-08 | 建立 Phase 2 gateway connection 圖譜 | `src/gateway/*`, `src/shared/*`, `src/sidepanel/*`, `tests/gateway-client.test.ts` |
 | v0.2 | 2026-07-08 | 新增 Phase 3 context extraction 與 Phase 4 workspace UI 節點 | `src/content/*`, `src/shared/browser-context-protocol.ts`, `src/sidepanel/*`, `tests/*` |
+| v0.3 | 2026-07-08 | 新增 restricted/redaction/chat streaming 節點與關係 | `src/content/restricted-pages.ts`, `src/content/redaction.ts`, `src/gateway/stream-parser.ts`, `src/gateway/rest-adapter.ts`, `src/sidepanel/App.tsx` |

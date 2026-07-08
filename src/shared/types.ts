@@ -105,9 +105,21 @@ export interface RedactionEvent {
   location: 'page_text' | 'selected_text' | 'url' | 'tab_title' | 'attachment';
 }
 
+export type RestrictedPageCategory =
+  | 'browser_internal'
+  | 'extension_page'
+  | 'local_file'
+  | 'password_manager'
+  | 'banking'
+  | 'crypto'
+  | 'payment'
+  | 'health'
+  | 'government_tax'
+  | 'admin_credentials';
+
 export interface RestrictedPageResult {
   blocked: boolean;
-  category: string;
+  category?: RestrictedPageCategory;
   originHash?: string;
 }
 
@@ -162,6 +174,21 @@ export interface BrowserContextReceipt {
   redactions: number;
   truncated: boolean;
 }
+
+export interface HermesTurnInput {
+  message: string;
+  model?: string;
+  profile?: string;
+  sessionId?: string;
+  context?: string;
+}
+
+export type HermesStreamEvent =
+  | { type: 'delta'; text: string }
+  | { type: 'tool'; name: string; status?: string }
+  | { type: 'warning'; message: string }
+  | { type: 'error'; message: string }
+  | { type: 'done' };
 
 export interface GatewayCatalog {
   health?: HealthStatus;

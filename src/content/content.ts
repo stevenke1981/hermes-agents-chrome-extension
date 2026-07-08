@@ -1,4 +1,6 @@
 import { extractPageContext } from './extractors';
+import { redactBrowserContextInput } from './redaction';
+import { createBlockedBrowserContext, isRestrictedPage } from './restricted-pages';
 import { buildBrowserContext, createContextReceipt } from '../shared/browser-context-protocol';
 import { EXTENSION_VERSION } from '../shared/constants';
 import type { BrowserContextReceipt, BrowserContextV1, ContextScope } from '../shared/types';
@@ -30,20 +32,18 @@ chrome.runtime.onMessage.addListener(
   ) => {
     if (message?.type !== 'HERMES_CONTENT_SCAFFOLD_STATUS') {
       if (message?.type === 'HERMES_EXTRACT_CONTEXT') {
-        const context = buildBrowserContext({
-          scope: message.scope ?? 'follow_active_tab',
-          source: {
-            browser: 'unknown',
-            extensionVersion: EXTENSION_VERSION
-          },
-          activeTab: {
-            origin: window.location.origin,
-            title: document.title
-          },
-          selectedText: window.getSelection()?.toString() ?? undefined,
-          page: extractPageContext(document),
-          maxChars: message.maxChars
-        });
+        const scope = message.scope ?? 'follow_active_tab';
+        const restricted = isRestrictedPage(window.location.href);
+        const context = restricted.blocked
+          ? createBlockedBrowserContext({
+              url: window.location.href,
+              scope,
+              source: {
+                browser: 'unknown',
+                extensionVersion: EXTENSION_VERSION
+              }
+            })
+          : buildSafeContext(scope, message.maxChars);
 
         sendResponse({
           ok: true,
@@ -67,4 +67,28 @@ chrome.runtime.onMessage.addListener(
     return true;
   }
 );
+
+function buildSafeContext(scope: ContextScope, maxChars?: number): BrowserContextV1 {
+  const redacted = redactBrowserContextInput({
+    activeTab: {
+      origin: window.location.origin,
+      title: document.title
+    },
+    selectedText: window.getSelection()?.toString() ?? undefined,
+    page: extractPageContext(document)
+  });
+
+  return buildBrowserContext({
+    scope,
+    source: {
+      browser: 'unknown',
+      extensionVersion: EXTENSION_VERSION
+    },
+    activeTab: redacted.activeTab,
+    selectedText: redacted.selectedText,
+    page: redacted.page,
+    redactions: redacted.redactions,
+    maxChars
+  });
+}
 

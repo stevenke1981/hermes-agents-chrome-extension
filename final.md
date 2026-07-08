@@ -8,7 +8,8 @@
 - Phase 2 Hermes Gateway connection 已完成第一個可驗收切片：REST adapter、health/models/sessions/skills/profiles/capabilities probe、token header、timeout、gateway origin sanitizer、redacted error、ConnectedWithWarning、remote HTTP warning、Side Panel connection settings。
 - Phase 3 Browser Context Protocol 與 context extraction 已完成第一個可驗收切片：`chat_only` protection、active tab safe metadata、selected text、page title/meta/headings/paragraphs/links/buttons/form labels、payload char limit、truncation receipt、untrusted wrapper、YouTube transcript disabled stub。
 - Phase 4 Side Panel UI 已完成工作台骨架：conversation preview、Tool activity strip、What Hermes saw、Diagnostics section、Dev Handoff clipboard-only quick actions。
-- 尚未實作 restricted page classifier、secret redaction pipeline、chat streaming、diagnostics copy payload、E2E/manual browser QA。
+- Restricted page classifier、secret redaction pipeline、chat streaming 已完成第一個可驗收切片，並整合進 content extraction / Side Panel send flow。
+- 尚未實作 diagnostics copy payload、E2E/manual browser QA、Cancel streaming、Retry last message、Local message history per tab/session。
 - `npm install` 完成，並已將 Vitest 升級到 4.x；`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 
 ### 最新驗證
@@ -38,6 +39,17 @@ npm audit --audit-level=moderate
 - 更新 `src/sidepanel/App.tsx` 與 `src/sidepanel/styles.css`，補齊 Phase 4 workspace UI 骨架。
 - 新增 `tests/browser-context-protocol.test.ts`、`tests/extractors.test.ts`、`tests/youtube-transcript.test.ts`、`tests/sidepanel-ui.test.tsx`。
 - 驗收結果：`npm run verify` 通過（6 test files、18 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
+
+### 2026-07-08 Restricted / Redaction / Streaming 驗收紀錄
+
+- 新增 `src/content/restricted-pages.ts`，阻擋 browser internals、extension pages、local files、password/banking/crypto/payment/health/government tax/admin credentials URL patterns。
+- 新增 `src/content/redaction.ts`，支援 Bearer/API key/JWT/private key/secret assignment/URL query/cookie-like redaction，並輸出 `RedactionEvent` counts。
+- 新增 `src/gateway/stream-parser.ts`，支援 delta/tool/done/warning/error stream event。
+- 更新 `src/gateway/rest-adapter.ts`，新增 `sendTurn()` streaming REST adapter。
+- 更新 `src/sidepanel/App.tsx`，送出訊息時可抽取 active tab context、套用 untrusted wrapper、stream Hermes 回覆並顯示 tool activity。
+- 新增 `tests/restricted-pages.test.ts`、`tests/redaction.test.ts`、`tests/stream-parser.test.ts`、`tests/chat-streaming.test.ts`。
+- 驗收結果：`npm run verify` 通過（10 test files、58 tests、`tsc --noEmit`、manifest check、security sink check），`npm run build` 通過，`npm run lint` 通過，`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
+- 壓縮結果：`npm run package` 通過，產生 `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`（artifact 目錄依 `.gitignore` 不納入 commit）。
 
 ## 1. 最終交付物
 

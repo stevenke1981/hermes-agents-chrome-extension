@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { probeGateway } from '../gateway/rest-adapter';
+import { createHermesRestClient, probeGateway, redactSensitiveText } from '../gateway/rest-adapter';
+import { wrapUntrustedBrowserContext } from '../shared/browser-context-protocol';
 import { AGENT_MODES, CONTEXT_SCOPES, EXTENSION_NAME } from '../shared/constants';
 import {
   clearStoredGatewayToken,
@@ -14,7 +15,10 @@ import type {
   ContextScope,
   GatewayMode,
   GatewayProbeResult,
-  GatewaySettings
+  GatewaySettings,
+  BrowserContextReceipt,
+  BrowserContextV1,
+  HermesStreamEvent
 } from '../shared/types';
 
 const agentLabels: Record<AgentMode, string> = {
@@ -68,12 +72,42 @@ const emptyProbe: GatewayProbeResult = {
   warnings: []
 };
 
+type TranscriptMessage = {
+  role: 'system' | 'user' | 'hermes';
+  text: string;
+};
+
+type ToolActivity = Extract<HermesStreamEvent, { type: 'tool' }> | { type: 'status'; name: string; status: string };
+
 export function App() {
   const [settings, setSettings] = useState<GatewaySettings>(DEFAULT_GATEWAY_SETTINGS);
   const [tokenInput, setTokenInput] = useState('');
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [probeResult, setProbeResult] = useState<GatewayProbeResult>(emptyProbe);
   const [activeError, setActiveError] = useState<string | undefined>();
+  const [contextScope, setContextScope] = useState<ContextScope>('chat_only');
+  const [messageText, setMessageText] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [transcript, setTranscript] = useState<TranscriptMessage[]>([
+    { role: 'system', text: 'Connect Hermes Gateway' },
+    { role: 'user', text: 'Browser context attached only when the selected scope allows it.' },
+    { role: 'hermes', text: 'Responses will stream here with markdown and tool activity.' }
+  ]);
+  const [toolActivity, setToolActivity] = useState<ToolActivity[]>([
+    { type: 'status', name: 'browser context', status: 'waiting' },
+    { type: 'status', name: 'Hermes tools', status: 'available after gateway connection' },
+    { type: 'status', name: 'redaction', status: 'enforced before sending context' }
+  ]);
+  const [lastReceipt, setLastReceipt] = useState<BrowserContextReceipt>({
+    scope: 'chat_only',
+    browserContentSent: false,
+    selectedTextIncluded: false,
+    pageTextChars: 0,
+    openTabsSent: 0,
+    attachmentsSent: 0,
+    redactions: 0,
+    truncated: false
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -156,6 +190,82 @@ export function App() {
     setSettings((current) => ({ ...current, ...partial }));
     setConnectionState('disconnected');
     setActiveError(undefined);
+  }
+
+  async function handleSendTurn() {
+    const message = messageText.trim();
+    if (!message || !canSend || isStreaming) {
+      return;
+    }
+
+    setMessageText('');
+    setActiveError(undefined);
+    setIsStreaming(true);
+    setTranscript([
+      { role: 'user', text: message },
+      { role: 'hermes', text: '' }
+    ]);
+
+    try {
+      const context = contextScope === 'chat_only' ? undefined : await extractContextFromActiveTab(contextScope);
+      if (context) {
+        setLastReceipt(context.receipt);
+        setToolActivity([{ type: 'status', name: 'browser context', status: 'attached' }]);
+      } else {
+        setLastReceipt({
+          scope: 'chat_only',
+          browserContentSent: false,
+          selectedTextIncluded: false,
+          pageTextChars: 0,
+          openTabsSent: 0,
+          attachmentsSent: 0,
+          redactions: 0,
+          truncated: false
+        });
+        setToolActivity([{ type: 'status', name: 'browser context', status: 'chat only' }]);
+      }
+
+      const client = createHermesRestClient(settings);
+      for await (const event of client.sendTurn({
+        message,
+        model: probeResult.models[0]?.id,
+        sessionId: probeResult.sessions[0]?.id,
+        context: context ? wrapUntrustedBrowserContext(context.context) : undefined
+      })) {
+        applyStreamEvent(event);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? redactSensitiveText(error.message) : 'Streaming failed.';
+      setActiveError(message);
+      setConnectionState('connected_with_warning');
+    } finally {
+      setIsStreaming(false);
+    }
+  }
+
+  function applyStreamEvent(event: HermesStreamEvent) {
+    if (event.type === 'delta') {
+      setTranscript((current) =>
+        current.map((message, index) =>
+          index === current.length - 1 && message.role === 'hermes'
+            ? { ...message, text: `${message.text}${event.text}` }
+            : message
+        )
+      );
+      return;
+    }
+
+    if (event.type === 'tool') {
+      setToolActivity((current) => [...current, event]);
+      return;
+    }
+
+    if (event.type === 'error' || event.type === 'warning') {
+      setToolActivity((current) => [
+        ...current,
+        { type: 'status', name: event.type, status: event.message }
+      ]);
+    }
   }
 
   return (
@@ -268,7 +378,7 @@ export function App() {
       <section className="context-bar" aria-label="Context scope">
         <label>
           Context
-          <select defaultValue="chat_only">
+          <select value={contextScope} onChange={(event) => setContextScope(event.target.value as ContextScope)}>
             {CONTEXT_SCOPES.map((scope) => (
               <option key={scope} value={scope}>
                 {scopeLabels[scope]}
@@ -276,7 +386,11 @@ export function App() {
             ))}
           </select>
         </label>
-        <div className="context-receipt">Chat only · no browser content sent</div>
+        <div className="context-receipt">
+          {lastReceipt.blockedCategory
+            ? `Blocked sensitive page · ${lastReceipt.blockedCategory}`
+            : `${scopeLabels[contextScope]} · ${lastReceipt.browserContentSent ? `${lastReceipt.pageTextChars} chars` : 'no browser content sent'}`}
+        </div>
       </section>
 
       <section className="agent-modes" aria-label="Agent mode">
@@ -289,17 +403,12 @@ export function App() {
 
       <section className="transcript" aria-label="Conversation">
         <div className="message-list">
-          <article className="message system-message">
-            <p>{canSend ? 'Hermes Gateway is reachable. Chat wiring comes next.' : 'Connect Hermes Gateway'}</p>
-          </article>
-          <article className="message user-preview">
-            <strong>User</strong>
-            <p>Browser context attached only when the selected scope allows it.</p>
-          </article>
-          <article className="message hermes-preview">
-            <strong>Hermes</strong>
-            <p>Responses will stream here with markdown and tool activity.</p>
-          </article>
+          {transcript.map((message, index) => (
+            <article key={`${message.role}-${index}`} className={`message ${message.role}-message`}>
+              <strong>{message.role === 'hermes' ? 'Hermes' : message.role === 'user' ? 'User' : 'Status'}</strong>
+              <p>{message.text || (isStreaming ? 'Streaming...' : '')}</p>
+            </article>
+          ))}
           {probeResult.skills.length > 0 ? (
             <p className="catalog-summary">{probeResult.skills.length} skills available</p>
           ) : null}
@@ -312,9 +421,11 @@ export function App() {
           <p>Read-only</p>
         </div>
         <ul>
-          <li>browser context · waiting</li>
-          <li>Hermes tools · available after gateway connection</li>
-          <li>redaction · enforced before sending context</li>
+          {toolActivity.map((activity, index) => (
+            <li key={`${activity.name}-${index}`}>
+              {activity.name} · {activity.status ?? 'running'}
+            </li>
+          ))}
         </ul>
       </section>
 
@@ -323,11 +434,23 @@ export function App() {
         <dl>
           <div>
             <dt>Scope</dt>
-            <dd>Chat only</dd>
+            <dd>{scopeLabels[lastReceipt.scope]}</dd>
           </div>
           <div>
             <dt>Browser content sent</dt>
-            <dd>No</dd>
+            <dd>{lastReceipt.browserContentSent ? 'Yes' : 'No'}</dd>
+          </div>
+          <div>
+            <dt>Page</dt>
+            <dd>{lastReceipt.page ?? lastReceipt.blockedCategory ?? 'n/a'}</dd>
+          </div>
+          <div>
+            <dt>Page text chars</dt>
+            <dd>{lastReceipt.pageTextChars}</dd>
+          </div>
+          <div>
+            <dt>Redactions</dt>
+            <dd>{lastReceipt.redactions}</dd>
           </div>
           <div>
             <dt>Gateway</dt>
@@ -372,7 +495,7 @@ export function App() {
           </div>
           <div>
             <dt>Context scope</dt>
-            <dd>Chat only</dd>
+            <dd>{scopeLabels[contextScope]}</dd>
           </div>
           <div>
             <dt>Sensitive fields</dt>
@@ -381,14 +504,48 @@ export function App() {
         </dl>
       </section>
 
-      <form className="composer" onSubmit={(event) => event.preventDefault()}>
+      <form
+        className="composer"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSendTurn();
+        }}
+      >
         <label htmlFor="message">Message</label>
-        <textarea id="message" rows={3} placeholder="Ask Hermes..." />
-        <button type="submit" disabled={!canSend}>
-          Send
+        <textarea
+          id="message"
+          rows={3}
+          placeholder="Ask Hermes..."
+          value={messageText}
+          onChange={(event) => setMessageText(event.target.value)}
+        />
+        <button type="submit" disabled={!canSend || !messageText.trim() || isStreaming}>
+          {isStreaming ? 'Streaming...' : 'Send'}
         </button>
       </form>
     </main>
   );
+}
+
+async function extractContextFromActiveTab(scope: ContextScope): Promise<
+  | {
+      context: BrowserContextV1;
+      receipt: BrowserContextReceipt;
+    }
+  | undefined
+> {
+  if (typeof chrome === 'undefined' || !chrome.tabs?.query) {
+    return undefined;
+  }
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tab.id === undefined) {
+    return undefined;
+  }
+
+  return chrome.tabs.sendMessage(tab.id, {
+    type: 'HERMES_EXTRACT_CONTEXT',
+    scope
+  });
 }
 

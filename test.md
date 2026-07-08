@@ -49,21 +49,21 @@
 
 必測案例：
 
-- [ ] `Authorization: Bearer abc123` → `Authorization: Bearer [REDACTED_BEARER]`
-- [ ] `OPENAI_API_KEY=sk-...` → `[REDACTED_SECRET_ASSIGNMENT]`
-- [ ] GitHub token：`ghp_...` redacted
-- [ ] Slack token：`xoxb-...` redacted
-- [ ] JWT：`aaa.bbb.ccc` redacted
-- [ ] PEM private key block redacted
-- [ ] URL query：`?token=abc&x=1` redacted
-- [ ] Cookie-like：`session=abc` redacted
-- [ ] 多個 secret count 正確
+- [x] `Authorization: Bearer abc123` → `Authorization: Bearer [REDACTED_BEARER]`
+- [x] `OPENAI_API_KEY=sk-...` → `[REDACTED_SECRET_ASSIGNMENT]`
+- [x] GitHub token：`ghp_...` redacted
+- [x] Slack token：`xoxb-...` redacted
+- [x] JWT：`aaa.bbb.ccc` redacted
+- [x] PEM private key block redacted
+- [x] URL query：`?token=abc&x=1` redacted
+- [x] Cookie-like：`session=abc` redacted
+- [x] 多個 secret count 正確
 - [ ] 非 secret 正常文字不誤殺過多
 
 驗收：
 
-- 至少 20 個 redaction cases。
-- 每個 RedactionEvent 有 type、count、location。
+- [x] 至少 20 個 redaction cases。
+- [x] 每個 RedactionEvent 有 type、count、location。
 
 ### 4.2 Restricted page tests
 
@@ -88,9 +88,9 @@ https://vault.example.com/passwords
 
 驗收：
 
-- `isRestrictedPage(url)` 回傳 blocked。
-- blocked result 有 category。
-- 不回傳 full URL 到 prompt receipt，只回傳 category 或 origin hash。
+- [x] `isRestrictedPage(url)` 回傳 blocked。
+- [x] blocked result 有 category。
+- [x] 不回傳 full URL 到 prompt receipt，只回傳 category 或 origin hash。
 
 ### 4.3 Browser Context Protocol tests
 
@@ -174,6 +174,15 @@ GET /api/ws
 - [x] token-shaped error text 會 redacted。
 - [x] optional catalog endpoint 失敗時回傳 `connected_with_warning`。
 - [x] remote HTTP gateway 顯示安全警告。
+
+### 5.3 Chat streaming adapter coverage（2026-07-08）
+
+檔案：`tests/stream-parser.test.ts`、`tests/chat-streaming.test.ts`
+
+- [x] OpenAI-compatible stream delta chunk 解析。
+- [x] tool activity stream chunk 解析。
+- [x] `[DONE]` 與 keepalive line 處理。
+- [x] `sendTurn()` POST `/v1/chat/completions`，帶 token 並 yield delta/done events。
 
 ## 6. E2E Tests
 
