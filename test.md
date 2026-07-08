@@ -250,6 +250,21 @@ GET /api/ws
 
 ## 7. Manual QA
 
+### 7.0 Real-browser smoke QA（2026-07-08）
+
+Command:
+
+```bash
+npm run build
+npm run qa:manual:browsers
+```
+
+Result:
+
+- [x] Edge `150.0.4078.48`：真實瀏覽器臨時 profile 載入 `dist/`，extension service worker detected，side panel default path 正確，Side Panel page render 核心 UI，`https://example.com` 開啟成功，Local Hermes Gateway test connection 回到 `Connected · warning`。
+- [x] Brave `150.0.7871.63`：真實瀏覽器臨時 profile 載入 `dist/`，extension service worker detected，side panel default path 正確，Side Panel page render 核心 UI，`https://example.com` 開啟成功，Local Hermes Gateway test connection 回到 `Connected · warning`。
+- [ ] Chrome `150.0.7871.47`：browser executable 可啟動且 `dist` manifest 權限檢查通過，但 Google Chrome 137+ 封鎖 command-line `--load-extension`，因此此自動 smoke 無法代表 `chrome://extensions` UI Load unpacked；仍需人工在 Chrome extension page 執行 Developer mode → Load unpacked。
+
 ### 7.1 Chrome
 
 - [ ] `npm run build`
@@ -268,9 +283,13 @@ GET /api/ws
 
 同 Chrome，路徑改 `edge://extensions`。
 
+- [x] 2026-07-08 real-browser smoke：load unpacked via CLI profile、Side Panel render、Local Gateway connected-with-warning fallback。
+
 ### 7.3 Brave
 
 同 Chrome，注意 Side Panel API 與 extension clipboard 行為可能有差異。
+
+- [x] 2026-07-08 real-browser smoke：load unpacked via CLI profile、Side Panel render、Local Gateway connected-with-warning fallback。
 
 ## 8. Security Tests
 

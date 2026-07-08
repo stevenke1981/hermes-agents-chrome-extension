@@ -13,7 +13,8 @@
 - Priority regression pass 已完成：Authorization header normalization、quoted Bearer redaction、transcript history accumulation、runtime selector binding、agent-mode system prompt、content extraction timeout、browser family detection、YouTube visible transcript extraction、Web Crypto origin hash。
 - Adapter cleanup pass 已完成：REST headers helper、Dashboard WebSocket minimal adapter、YouTube script transcript cue extraction、8642 API key Bearer token settings guidance。
 - Review follow-up pass 已完成：Dashboard WebSocket chat envelope、YouTube transcript content message handler、active tab message timeout、diagnostics copied reset、Send spinner。
-- 尚未實作 E2E/manual browser QA、Cancel streaming、Retry last message。
+- Real-browser smoke QA 已完成 Edge / Brave：load unpacked、Side Panel render、`https://example.com` target、Local Hermes Gateway `Connected · warning` fallback；Chrome 150 command-line `--load-extension` 被瀏覽器政策阻擋，仍需 `chrome://extensions` UI Load unpacked 人工確認。
+- 尚未實作 Playwright E2E、Chrome UI manual QA、Cancel streaming、Retry last message。
 - `npm install` 完成，並已將 Vitest 升級到 4.x；`npm audit --audit-level=moderate` 回報 0 vulnerabilities。
 
 ### 最新驗證
@@ -90,6 +91,14 @@ npm audit --audit-level=moderate
 - 更新 `src/content/content.ts`，新增 `HERMES_EXTRACT_YOUTUBE_TRANSCRIPT` read-only message handler，並保留 content script top-level import 在測試環境的安全性。
 - 更新 `src/sidepanel/App.tsx`，active tab context message 加 timeout fallback、Diagnostics copied 狀態自動重置、Send streaming button 顯示 spinner。
 - 新增 `tests/content-message-handler.test.ts`、`tests/sidepanel-active-tab.test.ts`、`tests/sidepanel-feedback.test.tsx`，並更新 `tests/ws-adapter.test.ts`。
+
+### 2026-07-08 Real-browser smoke QA 驗收紀錄
+
+- 新增 `scripts/manual-browser-qa.mjs` 與 `npm run qa:manual:browsers`，用真實瀏覽器臨時 profile 載入 `dist/`，不碰使用者日常 browser profile。
+- Edge `150.0.4078.48`：`edge://extensions` load-unpacked equivalent via QA profile 通過，extension service worker detected，Side Panel default path 為 `src/sidepanel/index.html`，核心 UI render，`https://example.com` 開啟成功，Local Hermes Gateway test connection 回到 `Connected · warning`。
+- Brave `150.0.7871.63`：`brave://extensions` load-unpacked equivalent via QA profile 通過，extension service worker detected，Side Panel default path 為 `src/sidepanel/index.html`，核心 UI render，`https://example.com` 開啟成功，Local Hermes Gateway test connection 回到 `Connected · warning`。
+- Chrome `150.0.7871.47`：可啟動、`dist` manifest 權限檢查通過；但 Google Chrome 137+ 封鎖 command-line `--load-extension`，本機 stderr 顯示 `--load-extension is not allowed in Google Chrome, ignoring.`，因此 Chrome 仍需人工走 `chrome://extensions` → Developer mode → Load unpacked。
+- 驗收結果：`npm run build` 通過；`npm run qa:manual:browsers` 通過並輸出 Chrome blocked / Edge passed / Brave passed。
 
 ## 1. 最終交付物
 

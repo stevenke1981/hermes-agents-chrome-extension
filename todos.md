@@ -206,15 +206,16 @@
 - [x] Priority regression tests：Authorization header、Bearer redaction、transcript history、runtime dropdowns、agent prompt、content timeout、browser detection、YouTube transcript、Web Crypto hash
 - [x] Adapter cleanup tests：REST request headers、Dashboard WebSocket adapter、YouTube script cues、Bearer token settings guidance
 - [x] Review follow-up tests：Dashboard WebSocket chat envelope、YouTube transcript message handler、active tab message timeout、diagnostics copied reset、send spinner
+- [x] Real-browser smoke QA script：Edge / Brave load unpacked、Side Panel render、Local Gateway connected-with-warning fallback
 - [ ] Playwright extension load test
-- [ ] Manual Chrome test
-- [ ] Manual Edge test
-- [ ] Manual Brave test
+- [ ] Manual Chrome test（Chrome 137+ blocks command-line `--load-extension`; `chrome://extensions` UI Load unpacked still pending）
+- [x] Manual Edge test（2026-07-08 real-browser smoke passed）
+- [x] Manual Brave test（2026-07-08 real-browser smoke passed）
 - [ ] Security regression tests
 
 ## 14. Release
 
-- [ ] `dist/` 檢查
+- [x] `dist/` 檢查
 - [x] `artifacts/hermes-agents-chrome-extension-v0.1.0.zip`
 - [ ] release notes
 - [ ] screenshots

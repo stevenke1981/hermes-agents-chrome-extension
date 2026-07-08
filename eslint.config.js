@@ -33,7 +33,12 @@ export default tseslint.config(
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
-        console: 'readonly'
+        console: 'readonly',
+        fetch: 'readonly',
+        process: 'readonly',
+        setTimeout: 'readonly',
+        URL: 'readonly',
+        WebSocket: 'readonly'
       }
     }
   },

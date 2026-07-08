@@ -12,7 +12,8 @@
     "check:security": "node scripts/check-security-sinks.mjs",
     "verify": "npm run test && npm run check:js && npm run check:manifest && npm run check:security",
     "build": "vite build && node scripts/copy-manifest.mjs",
-    "package": "npm run verify && npm run build && node scripts/package.mjs"
+    "package": "npm run verify && npm run build && node scripts/package.mjs",
+    "qa:manual:browsers": "node scripts/manual-browser-qa.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
